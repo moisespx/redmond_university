@@ -14,12 +14,6 @@
   </head>
   <body>
     <main class="prelogin-shell">
-      <div class="locale-wrap">
-        <div class="locale-switch" role="group" aria-label="Language selector">
-          <a id="lang-en" href="?lang=en" data-lang="en">EN</a>
-          <a id="lang-es" href="?lang=es" data-lang="es">ES</a>
-        </div>
-      </div>
 
       <section class="hero-banner" aria-label="Classroom banner">
         <img src="./imgs/banner.png" alt="Team training session" />
@@ -101,15 +95,6 @@
             return;
           }
           element.textContent = dictionary[key];
-        });
-
-        ["en", "es"].forEach((code) => {
-          const link = document.getElementById(`lang-${code}`);
-          if (!link) return;
-          const next = new URL(window.location.href);
-          next.searchParams.set("lang", code);
-          link.href = `${next.pathname}${next.search}${next.hash}`;
-          link.classList.toggle("active", code === lang);
         });
       })();
     </script>
