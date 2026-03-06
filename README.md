@@ -1,55 +1,58 @@
 # redmond_university
 
-Static training modules and mini-games for Canvas embeds.
+Static project for training modules and mini-games embedded in Canvas.
 
-## Project structure
+## Current Structure
 
 ```text
 .
 ├── apps/
 │   ├── badges/
-│   │   ├── animated/
-│   │   └── builder/
 │   ├── cards/
-│   ├── prelogin/
 │   └── video/
-├── assets/
-│   ├── imgs/
-│   └── media/
 ├── components/
 │   └── cta/
 ├── games/
 │   ├── farm/
 │   ├── jeopardy/
 │   └── smoothie/
+├── assets/
+│   ├── imgs/
+│   └── media/
+├── prelogin/
 └── index.html
 ```
 
-## Legacy routes
+`prelogin` is at the root to keep a simpler route.
 
-The old folders/files are kept as lightweight redirect pages so existing links still work:
+## Main Routes
 
-- `clickable-cards/*`
-- `farm/`, `jeopardy/`, `smoothie/`
-- `prelogin/`, `video/`, `CTAcomponent/`
-- `animated-badge.html`, `badge.html`, `pixel-module.html` (deprecated, redirects to home)
+- Main hub: `index.html`
+- Prelogin: `prelogin/index.html`
+- Cards: `apps/cards/index.html`
+- Video: `apps/video/index.html`
+- Reusable CTA: `components/cta/index.html`
+- Games:
+  - `games/farm/index.html`
+  - `games/jeopardy/index.html`
+  - `games/smoothie/index.html`
 
-## Local preview
+## Language by URL
 
-Open `index.html` in a browser, or run a local static server.
+These pages support `?lang=en` or `?lang=es`:
 
-## GitHub Pages
+- `index.html`
+- `prelogin/index.html`
+- `apps/video/index.html`
+- `games/farm/index.html`
+- `games/jeopardy/index.html`
+
+## GitHub Pages (Quick Setup)
 
 1. Push to `main`.
-2. In `Settings > Pages`, set:
-- Source: `Deploy from a branch`
-- Branch: `main`
-- Folder: `/ (root)`
-3. Site URL for project pages:
-- `https://<username>.github.io/redmond_university/`
+2. In GitHub, go to `Settings > Pages`.
+3. Source: `Deploy from a branch`.
+4. Branch: `main` and folder: `/ (root)`.
 
-## Notes
-
-- Prefer relative URLs (`./` or `../`) to keep compatibility with project pages base paths.
-- Canvas embeds can use direct links under `apps/` and `games/`.
-- Several pages now accept `?lang=en` or `?lang=es` (hub, prelogin, video, farm game, jeopardy).
+Final URL:
+`https://<username>.github.io/redmond_university/`
