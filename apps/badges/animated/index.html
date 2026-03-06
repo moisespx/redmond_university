@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Badge Progress — Redmond Collections</title>
+  <style>
+    :root {
+      --fg: #111;
+      --muted: #666;
+      --brand: #0b6efd;
+      --card: #fff;
+      --bg: #f7f7f8;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      /* padding: 32px 16px; */
+    }
+    .card {
+      max-width: 720px;
+      width: 100%;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.08);
+      padding: 28px 24px 24px;
+    }
+    h1 {
+      font-size: clamp(22px, 3vw, 28px);
+      line-height: 1.2;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+    p.lead {
+      margin: 0 0 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: clamp(14px, 2.2vw, 16px);
+    }
+    .anim {
+      display: block;
+      margin: 8px auto 4px;
+      width: min(360px, 92vw);
+      height: min(360px, 92vw);
+      border: 0;
+      border-radius: 12px;
+    }
+    .actions { text-align: center; margin-top: 10px; }
+    .btn {
+      appearance: none;
+      border: 0;
+      background: var(--brand);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn:focus { outline: 3px solid rgba(11,110,253,.35); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card" aria-labelledby="t" data-badge="redmond">
+      <h1 id="t">You have completed the <strong>Redmond Collections</strong> module! 🐣</h1>
+      <p class="lead">This chick just hatched — this is what progress looks like! Keep learning to help it grow and unlock the next badge.</p>
+
+      <img class="anim" src="../../../assets/media/Hatch.gif" alt="Hatching chick badge" loading="lazy" />
+
+    </section>
+    <section class="card" aria-labelledby="t2" data-badge="pollito" style="margin-top:24px;">
+      <h1 id="t2">You have unlocked the <strong>Growing Chick</strong> achievement! 🐥</h1>
+      <p class="lead">Your chick is starting to grow — every module you finish makes it stronger. Keep going to reach the next stage!</p>
+
+      <iframe class="anim" title="Animated badge - Growing chick"
+        src="https://lottie.host/embed/4798af10-ab11-4215-8a32-c95d4b24e747/n2Ir6OAzZ5.lottie"
+        loading="lazy" allowfullscreen></iframe>
+    </section>
+    <section class="card" aria-labelledby="t3" data-badge="gallo" style="margin-top:24px;">
+      <h1 id="t3">Congratulations! You have earned the <strong>Rooster Badge</strong> 🐓</h1>
+      <p class="lead">Your chick has grown into a strong rooster — a symbol of commitment and learning. You have completed the course successfully!</p>
+
+      <iframe class="anim" title="Animated badge - Rooster"
+        src="https://lottie.host/embed/b5514760-7b6a-46c1-a72a-76a189ac7878/YNmprLGw4P.lottie"
+        loading="lazy" allowfullscreen></iframe>
+    </section>
+  </main>
+  <script>
+    (function () {
+      const sections = Array.from(document.querySelectorAll('section[data-badge]'));
+      if (!sections.length) {
+        return;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const requested = params.get('badge');
+      let active = sections[0];
+
+      if (requested) {
+        const match = sections.find((section) => section.dataset.badge === requested);
+        if (match) {
+          active = match;
+        }
+      }
+
+      sections.forEach((section) => {
+        if (section !== active) {
+          section.hidden = true;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

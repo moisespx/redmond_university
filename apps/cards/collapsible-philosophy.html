@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Collapsible Philosophy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --panel-bg: #878c80;
+        --panel-border: rgba(242, 237, 226, 0.65);
+        --panel-ink: #f5f1e8;
+        --panel-muted: rgba(245, 241, 232, 0.92);
+        --arrow-color: #ffffff;
+        --panel-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        background: #ffffff;
+        color: #1f2937;
+        font-family: "Avenir Next", "Avenir", "Helvetica Neue", sans-serif;
+      }
+
+      html.is-embedded body {
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 28px 20px 40px;
+        background: #ffffff;
+      }
+
+      .panel {
+        width: min(760px, 100%);
+        background: var(--panel-bg);
+        color: var(--panel-ink);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--panel-shadow);
+        padding: 28px clamp(18px, 4vw, 40px) 32px;
+        position: relative;
+      }
+
+      html.is-embedded .panel {
+        width: min(760px, 100%);
+        box-shadow: var(--panel-shadow);
+      }
+
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border: 1px solid rgba(242, 237, 226, 0.35);
+        pointer-events: none;
+      }
+
+      .panel-title {
+        display: none;
+      }
+
+      .philosophy-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .philosophy-list > .collapse-item {
+        border-bottom: 1px solid rgba(242, 237, 226, 0.25);
+        padding-bottom: 16px;
+      }
+
+      .philosophy-list > .collapse-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .collapse-children {
+        list-style: none;
+        margin: 14px 0 0;
+        padding: 0 0 0 16px;
+        border-left: 1px solid rgba(242, 237, 226, 0.2);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .collapse-item.is-nested {
+        padding: 0;
+        border: none;
+      }
+
+      .collapse-item.is-nested .collapse-trigger {
+        font-size: clamp(0.84rem, 1.65vw, 1.02rem);
+        letter-spacing: 0.06em;
+      }
+
+      .collapse-item.is-nested .collapse-heading {
+        text-align: left;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+
+      .collapse-item.is-nested .details-text {
+        margin-top: 8px;
+        font-size: 16px;
+      }
+
+      .collapse-heading {
+        width: 100%;
+        color: inherit;
+        font-family: "Montserrat", "Arial", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: clamp(1rem, 2.1vw, 1.35rem);
+        text-align: center;
+      }
+
+      .collapse-trigger {
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 0;
+        color: inherit;
+        cursor: pointer;
+        font-family: "Montserrat", "Arial", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: clamp(1rem, 2.1vw, 1.35rem);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
+      }
+
+      .collapse-trigger:focus-visible {
+        outline: 2px solid rgba(245, 241, 232, 0.7);
+        outline-offset: 4px;
+        border-radius: 6px;
+      }
+
+      .summary-icon {
+        color: var(--arrow-color);
+        font-size: clamp(1.45rem, 2.9vw, 1.95rem);
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        transition: transform 0.35s ease;
+      }
+
+      .collapse-item.is-open > .collapse-trigger .summary-icon {
+        transform: rotate(90deg);
+      }
+
+      .collapse-panel {
+        height: 0;
+        overflow: hidden;
+        transform: translateY(-6px);
+        transition: height 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.45s ease, transform 0.45s ease;
+        opacity: 0;
+      }
+
+      .collapse-item.is-open .collapse-panel {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .collapse-inner {
+        overflow: hidden;
+      }
+
+      .details-text {
+        margin: 12px 0 0;
+        color: var(--panel-muted);
+        font-size: 16px;
+        line-height: 1.65;
+        font-family: "Avenir Next", "Avenir", "Helvetica Neue", sans-serif;
+        font-weight: 500;
+        max-width: 64ch;
+        text-wrap: pretty;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.16);
+        opacity: 0;
+        transition: opacity 0.4s ease 0.05s;
+      }
+
+      .collapse-item.is-open .details-text {
+        opacity: 1;
+      }
+
+      .collapse-item.is-static .details-text {
+        opacity: 1;
+      }
+
+      .static-content {
+        margin-top: 10px;
+      }
+
+      .philosophy-list > .collapse-item:first-child .collapse-heading {
+        font-size: 2.45rem;
+        color: #ffffff;
+      }
+
+      .buying-note {
+        margin-top: 64px;
+        width: min(1240px, 100%);
+        text-align: center;
+        color: #3f4f5c;
+      }
+
+      .buying-note-kicker {
+        margin: 0;
+        font-family: "Montserrat", "Arial", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        font-size: clamp(1.15rem, 2.3vw, 1.6rem);
+        line-height: 1.15;
+        color: #2e3d2c;
+      }
+
+      .buying-note-star {
+        width: clamp(34px, 4vw, 28px);
+        height: auto;
+        display: block;
+        margin: 0 auto 18px;
+      }
+
+      .buying-note-title {
+        margin: 8px 0 0;
+        font-family: "Montserrat", "Arial", sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-size: clamp(1.15rem, 2.3vw, 1.6rem);
+        line-height: 1.1;
+        color: #000000;
+      }
+
+      .buying-note-copy {
+        margin: 28px auto 0;
+        max-width: 1220px;
+        font-size: clamp(0.95rem, 1.35vw, 1.1rem);
+        line-height: 1.45;
+        color: #000000;
+        font-weight: 450;
+      }
+
+      .buying-note-highlight {
+        margin: 26px auto 0;
+        font-family: "Montserrat", "Arial", sans-serif;
+        font-size: clamp(1rem, 1.45vw, 1.25rem);
+        line-height: 1.35;
+        color: #2e3d2c;
+        font-weight: 600;
+      }
+
+      .buying-note-highlight .chevron {
+        width: clamp(10px, 0.95vw, 15px);
+        height: auto;
+        margin-right: 10px;
+        vertical-align: middle;
+      }
+
+      @media (max-width: 640px) {
+        .panel::before {
+          inset: 10px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .collapse-panel,
+        .details-text,
+        .summary-icon {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <section class="panel" aria-label="Food philosophy">
+      <div class="panel-title"></div>
+      <ul class="philosophy-list" id="philosophy-list"></ul>
+    </section>
+    <section class="buying-note" aria-label="A note from our buying team">
+      <img class="buying-note-star" src="../../assets/imgs/png/estrella%201.png" alt="" aria-hidden="true" />
+      <h2 class="buying-note-kicker">A Note From Our Buying Team</h2>
+      <h3 class="buying-note-title">On Product Sourcing</h3>
+      <p class="buying-note-copy">
+        At Redmond, we hold our grocery and kitchen ingredients to high standards. We look for foods that
+        are nutrient-rich, minimally processed, and made with ingredients you'd recognize. We avoid
+        artificial colors, flavors, and preservatives, and we carefully vet each product's ingredient list
+        and production story. When it comes to animal-derived products, our emphasis is on pastured,
+        well-raised animals, and we partner with producers who meet our values of sustainability,
+        transparency, and care.
+      </p>
+      <p class="buying-note-highlight">
+        <img class="chevron" src="../../assets/imgs/png/flecha%201.png" alt="" aria-hidden="true" />
+        In short: if we carry it, you can trust it aligns with our mission to provide real food that
+        supports optimal health.
+      </p>
+    </section>
+
+    <script id="philosophy-data" type="application/json">
+      {
+        "title": "Food Philosophy",
+        "items": [
+          {
+            "title": "Our Commitment",
+            "collapsible": false,
+            "text": "We honor our role in the food supply chain by maintaining high standards for the products on our shelves, the ingredients in our kitchens, and the practices on our farms."
+          },
+          {
+            "title": "Nutrient Rich",
+            "open": true,
+            "text": "We focus on practices that protect nutritional density and maximize bioavailability, so you get the most out of every bite.",
+            "children": [
+              {
+                "title": "Example",
+                "collapsible": false,
+                "text": "Did you know that soil health and farming practices can drastically affect the nutrient content of foods? In light of this, the buying team chooses companies that prioritize regenerative farming methods and the preservation of healthy soil."
+              }
+            ]
+          },
+          {
+            "title": "Always Real",
+            "text": "We carefully vet every product and ingredient to truly understand what’s in it and where it comes from.",
+            "children": [
+              {
+                "title": "Example",
+                "collapsible": false,
+                "text": "In our kitchens, we emphasize product transparency with our customers. If customers have questions about the ingredients of our food or the products we use to create our meals, we are able to readily provide that information at the register."
+              }
+            ]
+          },
+          {
+            "title": "Intentionally Sourced",
+            "text": "We source from farmers who honor heritage practices and uphold high ethical standards for people, animals, and the environment.",
+            "children": [
+              {
+                "title": "Example",
+                "collapsible": false,
+                "text": "When deciding which brands of chocolate and coffee to sell in our markets, our buying team looks for companies that prioritize fair wages and safe working conditions for their farmers."
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      (function () {
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const isEmbedded = window.self !== window.top;
+        const root = document.documentElement;
+        const panelTitle = document.querySelector(".panel-title");
+        const list = document.getElementById("philosophy-list");
+        const dataNode = document.getElementById("philosophy-data");
+        let lastKnownHeight = 0;
+
+        if (isEmbedded) {
+          root.classList.add("is-embedded");
+        }
+
+        const DEFAULT_DATA = {
+          title: "Food Philosophy",
+          items: [
+            {
+              title: "Our Commitment",
+              collapsible: false,
+              text: "We honor our role in the food supply chain by maintaining high standards for the products on our shelves, the ingredients in our kitchens, and the practices on our farms.",
+            },
+            {
+              title: "Nutrient Rich",
+              open: true,
+              text: "We focus on practices that protect nutritional density and maximize bioavailability, so you get the most out of every bite.",
+              children: [
+                {
+                  title: "Example",
+                  collapsible: false,
+                  text: "Did you know that soil health and farming practices can drastically affect the nutrient content of foods? In light of this, the buying team chooses companies that prioritize regenerative farming methods and the preservation of healthy soil.",
+                },
+              ],
+            },
+            {
+              title: "Always Real",
+              text: "We carefully vet every product and ingredient to truly understand what’s in it and where it comes from.",
+              children: [
+                {
+                  title: "Example",
+                  collapsible: false,
+                  text: "In our kitchens, we emphasize product transparency with our customers. If customers have questions about the ingredients of our food or the products we use to create our meals, we are able to readily provide that information at the register.",
+                },
+              ],
+            },
+            {
+              title: "Intentionally Sourced",
+              text: "We source from farmers who honor heritage practices and uphold high ethical standards for people, animals, and the environment.",
+              children: [
+                {
+                  title: "Example",
+                  collapsible: false,
+                  text: "When deciding which brands of chocolate and coffee to sell in our markets, our buying team looks for companies that prioritize fair wages and safe working conditions for their farmers.",
+                },
+              ],
+            },
+          ],
+        };
+
+        function normalizeEntry(entry) {
+          const raw = entry && typeof entry === "object" ? entry : {};
+          const childrenRaw = Array.isArray(raw.children) ? raw.children : [];
+          const isCollapsible = raw.collapsible !== false;
+          return {
+            title: typeof raw.title === "string" ? raw.title : "",
+            text: typeof raw.text === "string" ? raw.text : "",
+            collapsible: isCollapsible,
+            open: isCollapsible ? Boolean(raw.open) : true,
+            children: childrenRaw.map(normalizeEntry),
+          };
+        }
+
+        const NORMALIZED_DEFAULT_DATA = {
+          ...DEFAULT_DATA,
+          items: DEFAULT_DATA.items.map(normalizeEntry),
+        };
+
+        function parseData() {
+          if (!dataNode) return NORMALIZED_DEFAULT_DATA;
+          try {
+            const parsed = JSON.parse(dataNode.textContent || "{}");
+            const items = Array.isArray(parsed.items)
+              ? parsed.items.map(normalizeEntry)
+              : [];
+            if (!items.length) return NORMALIZED_DEFAULT_DATA;
+            return {
+              title:
+                typeof parsed.title === "string" && parsed.title.trim()
+                  ? parsed.title
+                  : NORMALIZED_DEFAULT_DATA.title,
+              items,
+            };
+          } catch {
+            return NORMALIZED_DEFAULT_DATA;
+          }
+        }
+
+        function createCollapseItem(entry, path, depth) {
+          const item = document.createElement("li");
+          item.className = "collapse-item";
+          if (depth > 0) item.classList.add("is-nested");
+          const isOpen = entry.collapsible ? entry.open : true;
+          if (isOpen) item.classList.add("is-open");
+
+          if (!entry.collapsible) {
+            item.classList.add("is-static");
+            const heading = document.createElement("div");
+            heading.className = "collapse-heading";
+            heading.textContent = entry.title || "Untitled";
+
+            const content = document.createElement("div");
+            content.className = "static-content";
+
+            if (entry.text) {
+              const text = document.createElement("p");
+              text.className = "details-text";
+              text.textContent = entry.text;
+              content.append(text);
+            }
+
+            if (entry.children.length) {
+              const children = document.createElement("ul");
+              children.className = "collapse-children";
+              entry.children.forEach((child, index) => {
+                children.append(createCollapseItem(child, path.concat(index + 1), depth + 1));
+              });
+              content.append(children);
+            }
+
+            item.append(heading, content);
+            return item;
+          }
+
+          const panelId = `philosophy-${path.join("-")}`;
+
+          const trigger = document.createElement("button");
+          trigger.className = "collapse-trigger";
+          trigger.type = "button";
+          trigger.setAttribute("aria-expanded", String(isOpen));
+          trigger.setAttribute("aria-controls", panelId);
+          trigger.append(document.createTextNode(entry.title || "Untitled"));
+
+          const icon = document.createElement("span");
+          icon.className = "summary-icon";
+          icon.textContent = "›";
+          trigger.append(icon);
+
+          const panel = document.createElement("div");
+          panel.className = "collapse-panel";
+          panel.id = panelId;
+          panel.style.height = isOpen ? "auto" : "0px";
+
+          const inner = document.createElement("div");
+          inner.className = "collapse-inner";
+
+          if (entry.text) {
+            const text = document.createElement("p");
+            text.className = "details-text";
+            text.textContent = entry.text;
+            inner.append(text);
+          }
+
+          if (entry.children.length) {
+            const children = document.createElement("ul");
+            children.className = "collapse-children";
+            entry.children.forEach((child, index) => {
+              children.append(createCollapseItem(child, path.concat(index + 1), depth + 1));
+            });
+            inner.append(children);
+          }
+
+          panel.append(inner);
+          item.append(trigger, panel);
+          return item;
+        }
+
+        function bindCollapse(item) {
+          const trigger = item.querySelector(":scope > .collapse-trigger");
+          const panel = item.querySelector(":scope > .collapse-panel");
+          if (!trigger || !panel) return;
+
+          function closeItem(targetItem) {
+            const targetTrigger = targetItem.querySelector(":scope > .collapse-trigger");
+            const targetPanel = targetItem.querySelector(":scope > .collapse-panel");
+            if (!targetTrigger || !targetPanel) return;
+            if (!targetItem.classList.contains("is-open")) return;
+
+            if (reduceMotion) {
+              targetItem.classList.remove("is-open");
+              targetTrigger.setAttribute("aria-expanded", "false");
+              targetPanel.style.height = "0px";
+              return;
+            }
+
+            targetPanel.style.height = `${targetPanel.scrollHeight}px`;
+            requestAnimationFrame(() => {
+              targetItem.classList.remove("is-open");
+              targetTrigger.setAttribute("aria-expanded", "false");
+              targetPanel.style.height = "0px";
+              requestHeightSync();
+            });
+          }
+
+          function closeSiblingItems() {
+            if (!item.parentElement) return;
+            Array.from(item.parentElement.children).forEach((sibling) => {
+              if (!(sibling instanceof HTMLElement)) return;
+              if (sibling === item) return;
+              if (!sibling.classList.contains("collapse-item")) return;
+              closeItem(sibling);
+            });
+          }
+
+          trigger.addEventListener("click", () => {
+            const isOpen = item.classList.contains("is-open");
+
+            if (reduceMotion) {
+              if (!isOpen) closeSiblingItems();
+              item.classList.toggle("is-open", !isOpen);
+              trigger.setAttribute("aria-expanded", String(!isOpen));
+              panel.style.height = !isOpen ? "auto" : "0px";
+              requestHeightSync();
+              return;
+            }
+
+            if (isOpen) {
+              panel.style.height = `${panel.scrollHeight}px`;
+              requestAnimationFrame(() => {
+                item.classList.remove("is-open");
+                trigger.setAttribute("aria-expanded", "false");
+                panel.style.height = "0px";
+                requestHeightSync();
+              });
+              return;
+            }
+
+            closeSiblingItems();
+            item.classList.add("is-open");
+            trigger.setAttribute("aria-expanded", "true");
+            panel.style.height = "0px";
+            requestAnimationFrame(() => {
+              panel.style.height = `${panel.scrollHeight}px`;
+              requestHeightSync();
+            });
+          });
+
+          panel.addEventListener("transitionend", (event) => {
+            if (event.propertyName !== "height") return;
+            if (item.classList.contains("is-open")) {
+              panel.style.height = "auto";
+            }
+            requestHeightSync();
+          });
+        }
+
+        function getContentHeight() {
+          const body = document.body;
+          const html = document.documentElement;
+          return Math.ceil(
+            Math.max(
+              body ? body.scrollHeight : 0,
+              body ? body.offsetHeight : 0,
+              html ? html.scrollHeight : 0,
+              html ? html.offsetHeight : 0,
+            ),
+          );
+        }
+
+        function syncFrameHeight() {
+          if (!isEmbedded) return;
+          const nextHeight = getContentHeight();
+          if (!nextHeight || nextHeight === lastKnownHeight) return;
+          lastKnownHeight = nextHeight;
+
+          try {
+            if (window.frameElement && window.frameElement.tagName === "IFRAME") {
+              window.frameElement.style.height = `${nextHeight}px`;
+            }
+          } catch {}
+
+          window.parent.postMessage(
+            {
+              type: "collapsible-philosophy:resize",
+              height: nextHeight,
+            },
+            "*",
+          );
+        }
+
+        function requestHeightSync() {
+          if (!isEmbedded) return;
+          requestAnimationFrame(syncFrameHeight);
+        }
+
+        function setupIframeAutoResize() {
+          if (!isEmbedded) return;
+
+          requestHeightSync();
+          window.addEventListener("load", requestHeightSync);
+          window.addEventListener("resize", requestHeightSync);
+          list.addEventListener("transitionend", requestHeightSync, true);
+
+          if (typeof ResizeObserver === "function") {
+            const observer = new ResizeObserver(requestHeightSync);
+            observer.observe(document.body);
+            observer.observe(list);
+          }
+        }
+
+        const data = parseData();
+        panelTitle.textContent = data.title;
+        list.replaceChildren(
+          ...data.items.map((entry, index) => createCollapseItem(entry, [index + 1], 0)),
+        );
+        list.querySelectorAll(".collapse-item").forEach(bindCollapse);
+        setupIframeAutoResize();
+      })();
+    </script>
+  </body>
+</html>

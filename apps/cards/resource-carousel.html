@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resource Carousel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --card-width: 300px;
+        --card-height: 420px;
+        --step-x: 170px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Manrope", "Segoe UI", sans-serif;
+        color: #1f2b3a;
+      }
+
+      html.is-embedded,
+      html.is-embedded body {
+        height: 100%;
+        min-height: auto;
+        overflow: hidden;
+      }
+
+      html.is-embedded body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+      }
+
+      .page {
+        width: min(1160px, 100%);
+        margin: 0 auto;
+        padding: 24px 16px 24px;
+      }
+
+      html.is-embedded .page {
+        padding: 0 12px;
+      }
+
+      .carousel-wrap {
+        position: relative;
+        margin-top: 0;
+        padding: 10px 0 34px;
+        overflow: hidden;
+        touch-action: pan-y;
+      }
+
+      html.is-embedded .carousel-wrap {
+        padding: 8px 0 10px;
+      }
+
+      .carousel-wrap.is-dragging .resource-card {
+        transition: none;
+        cursor: grabbing;
+      }
+
+      .carousel {
+        position: relative;
+        height: calc(var(--card-height) + 86px);
+      }
+
+      html.is-embedded .carousel {
+        height: calc(var(--card-height) + 64px);
+      }
+
+      .resource-card {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: var(--card-width);
+        height: var(--card-height);
+        cursor: grab;
+        user-select: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+        transition:
+          transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 360ms ease,
+          filter 360ms ease,
+          box-shadow 360ms ease;
+        transform-origin: center center;
+        background: #0f172a;
+      }
+
+      .resource-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        pointer-events: none;
+        -webkit-user-drag: none;
+      }
+
+      .resource-card.is-active {
+        box-shadow: 0 16px 38px rgba(15, 23, 42, 0.26);
+      }
+
+      @media (max-width: 860px) {
+        :root {
+          --card-width: 252px;
+          --card-height: 360px;
+          --step-x: 118px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        :root {
+          --card-width: 216px;
+          --card-height: 316px;
+          --step-x: 88px;
+        }
+
+        .page {
+          padding-top: 18px;
+        }
+
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .resource-card {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="carousel-wrap" aria-label="Lorem ipsum">
+        <div class="carousel" id="carousel"></div>
+      </section>
+    </main>
+
+    <script id="carousel-data" type="application/json">
+      {
+        "title": "Lorem ipsum",
+        "subtitle": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "cards": [
+          {
+            "title": "Resource 1",
+            "image": "https://canvas.instructure.com/courses/12300081/files/336055601/preview",
+            "alt": "Lorem ipsum"
+          },
+          {
+            "title": "Resource 2",
+            "image": "https://canvas.instructure.com/courses/12300081/files/336232311/preview",
+            "alt": "Lorem ipsum"
+          },
+          {
+            "title": "Resource 3",
+            "image": "https://canvas.instructure.com/courses/12300081/files/336232365/preview",
+            "alt": "Lorem ipsum"
+          },
+          {
+            "title": "Resource 4",
+            "image": "	https://canvas.instructure.com/courses/12300081/files/336232369/preview",
+            "alt": "Lorem ipsum"
+          },
+          {
+            "title": "Resource 5",
+            "image": "	https://canvas.instructure.com/courses/12300081/files/336232367/preview",
+            "alt": "Lorem ipsum"
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      (function () {
+        if (window.self !== window.top) {
+          document.documentElement.classList.add("is-embedded");
+        }
+
+        const carousel = document.getElementById("carousel");
+        const dataNode = document.getElementById("carousel-data");
+        const carouselWrap = document.querySelector(".carousel-wrap");
+
+        const fallbackData = {
+          title: "Lorem ipsum",
+          subtitle: "Lorem ipsum dolor sit amet.",
+          cards: [
+            {
+              title: "Resource 1",
+              image: "https://canvas.instructure.com/courses/12300081/files/336055601/preview",
+              alt: "Lorem ipsum",
+            },
+            {
+              title: "Resource 2",
+              image: "https://canvas.instructure.com/courses/12300081/files/336232311/preview",
+              alt: "Lorem ipsum",
+            },
+            {
+              title: "Resource 3",
+              image: "https://canvas.instructure.com/courses/12300081/files/336232365/preview",
+              alt: "Lorem ipsum",
+            },
+            {
+              title: "Resource 4",
+              image: "https://canvas.instructure.com/courses/12300081/files/336232369/preview",
+              alt: "Lorem ipsum",
+            },
+            {
+              title: "Resource 5",
+              image: "https://canvas.instructure.com/courses/12300081/files/336232367/preview",
+              alt: "Lorem ipsum",
+            },
+          ],
+        };
+
+        const milkCards = [
+          {
+            title: "Milk 1",
+            image: "../../assets/imgs/jpg/1-Raw%20Milk%20Farm%20Shoot%20June%202025-11.jpg",
+            alt: "Raw milk farm photo 1",
+          },
+          {
+            title: "Milk 2",
+            image: "../../assets/imgs/jpg/2-Raw%20Milk%20Farm%20Shoot%20June%202025-24.jpg",
+            alt: "Raw milk farm photo 2",
+          },
+          {
+            title: "Milk 3",
+            image: "../../assets/imgs/jpg/3-Raw%20Milk%20Farm%20Shoot%20June%202025-26.jpg",
+            alt: "Raw milk farm photo 3",
+          },
+          {
+            title: "Milk 4",
+            image: "../../assets/imgs/jpg/4-Raw%20Milk%20Farm%20Shoot%20June%202025-21.jpg",
+            alt: "Raw milk farm photo 4",
+          },
+          {
+            title: "Milk 5",
+            image: "../../assets/imgs/jpg/5-Raw%20Milk%20Farm%20Shoot%20June%202025-42.jpg",
+            alt: "Raw milk farm photo 5",
+          },
+          {
+            title: "Milk 6",
+            image: "../../assets/imgs/jpg/6-Raw%20Milk%20Farm%20Shoot%20June%202025-29.jpg",
+            alt: "Raw milk farm photo 6",
+          },
+        ];
+
+        function parseCarouselData() {
+          if (!dataNode) return fallbackData;
+          try {
+            const parsed = JSON.parse(dataNode.textContent || "{}");
+            if (!Array.isArray(parsed.cards) || !parsed.cards.length) {
+              return fallbackData;
+            }
+            return parsed;
+          } catch {
+            return fallbackData;
+          }
+        }
+
+        function shouldUseMilkVariant() {
+          const params = new URLSearchParams(window.location.search);
+          if (!params.has("milk")) return false;
+          const value = (params.get("milk") || "").trim().toLowerCase();
+          return value === "" || value === "1" || value === "true" || value === "yes" || value === "milk";
+        }
+
+        function buildCards(items) {
+          carousel.innerHTML = "";
+          items.forEach((item) => {
+            const article = document.createElement("article");
+            article.className = "resource-card";
+
+            const image = document.createElement("img");
+            image.src = (item.image || "").trim();
+            image.alt = item.alt || "Lorem ipsum";
+            article.appendChild(image);
+            carousel.appendChild(article);
+          });
+        }
+
+        const carouselData = parseCarouselData();
+        const activeCards = shouldUseMilkVariant() ? milkCards : carouselData.cards;
+        buildCards(activeCards);
+
+        const cards = Array.from(document.querySelectorAll(".resource-card"));
+        let activeIndex = 0;
+        let autoplayTimer = null;
+        const AUTOPLAY_MS = 2200;
+        let suppressClickUntil = 0;
+        let pointerDown = false;
+        let activePointerId = null;
+        let pointerStartX = 0;
+        let dragOffsetX = 0;
+        let draggedInGesture = false;
+
+        function mod(value, total) {
+          return ((value % total) + total) % total;
+        }
+
+        function getStepX() {
+          const stepX = parseFloat(
+            getComputedStyle(document.documentElement).getPropertyValue("--step-x"),
+          );
+          return Number.isFinite(stepX) ? stepX : 170;
+        }
+
+        function circularOffset(index, active, total) {
+          let offset = index - active;
+          if (offset > total / 2) offset -= total;
+          if (offset < -total / 2) offset += total;
+          return offset;
+        }
+
+        function render(extraOffsetX = 0) {
+          const total = cards.length;
+          const stepX = getStepX();
+
+          cards.forEach((card, index) => {
+            const offset = circularOffset(index, activeIndex, total);
+            const abs = Math.abs(offset);
+            const hidden = abs > 3;
+
+            const translateX = offset * stepX + extraOffsetX;
+            const translateY = abs * 18;
+            const scale = 1 - abs * 0.12;
+            const opacity = 1 - abs * 0.22;
+
+            card.style.transform =
+              "translate(-50%, 0) translateX(" +
+              translateX +
+              "px) translateY(" +
+              translateY +
+              "px) scale(" +
+              scale +
+              ")";
+            card.style.opacity = hidden ? "0" : String(Math.max(opacity, 0.12));
+            card.style.filter = "saturate(" + (1 - abs * 0.08) + ")";
+            card.style.zIndex = String(100 - abs);
+            card.style.pointerEvents = hidden ? "none" : "auto";
+            card.classList.toggle("is-active", index === activeIndex);
+          });
+        }
+
+        function next() {
+          activeIndex = (activeIndex + 1) % cards.length;
+          render();
+        }
+
+        function prev() {
+          activeIndex = (activeIndex - 1 + cards.length) % cards.length;
+          render();
+        }
+
+        function startAutoplay() {
+          stopAutoplay();
+          autoplayTimer = setInterval(next, AUTOPLAY_MS);
+        }
+
+        function stopAutoplay() {
+          if (autoplayTimer) clearInterval(autoplayTimer);
+          autoplayTimer = null;
+        }
+
+        function restartAutoplay() {
+          startAutoplay();
+        }
+
+        cards.forEach((card, index) => {
+          card.addEventListener("click", () => {
+            if (Date.now() < suppressClickUntil) return;
+            if (index === activeIndex) {
+              next();
+            } else {
+              activeIndex = index;
+              render();
+            }
+            restartAutoplay();
+          });
+        });
+
+        function beginDrag(clientX, pointerId) {
+          if (pointerDown) return;
+          pointerDown = true;
+          activePointerId = pointerId;
+          pointerStartX = clientX;
+          dragOffsetX = 0;
+          draggedInGesture = false;
+          carouselWrap.classList.add("is-dragging");
+          stopAutoplay();
+        }
+
+        function updateDrag(clientX, pointerId) {
+          if (!pointerDown) return;
+          if (activePointerId !== null && pointerId !== activePointerId) return;
+          const rawDeltaX = clientX - pointerStartX;
+          const maxPreview = getStepX() * 1.25;
+          dragOffsetX = Math.max(-maxPreview, Math.min(maxPreview, rawDeltaX));
+          if (Math.abs(dragOffsetX) > 4) draggedInGesture = true;
+          render(dragOffsetX);
+        }
+
+        function finishDrag(pointerId) {
+          if (!pointerDown) return;
+          if (activePointerId !== null && pointerId !== activePointerId) return;
+          pointerDown = false;
+          activePointerId = null;
+          carouselWrap.classList.remove("is-dragging");
+
+          const stepX = getStepX();
+          const movedSteps = Math.round(-dragOffsetX / stepX);
+          const minMoveThreshold = stepX * 0.18;
+
+          if (Math.abs(dragOffsetX) >= minMoveThreshold && movedSteps !== 0) {
+            activeIndex = mod(activeIndex + movedSteps, cards.length);
+          }
+          if (draggedInGesture) {
+            suppressClickUntil = Date.now() + 300;
+          }
+          dragOffsetX = 0;
+          draggedInGesture = false;
+          render();
+          restartAutoplay();
+        }
+
+        function cancelDrag() {
+          if (!pointerDown) return;
+          pointerDown = false;
+          activePointerId = null;
+          dragOffsetX = 0;
+          draggedInGesture = false;
+          carouselWrap.classList.remove("is-dragging");
+          render();
+          restartAutoplay();
+        }
+
+        carouselWrap.addEventListener("dragstart", (event) => {
+          event.preventDefault();
+        });
+
+        carouselWrap.addEventListener("pointerdown", (event) => {
+          if (event.button !== undefined && event.button !== 0) return;
+          beginDrag(event.clientX, "p-" + event.pointerId);
+          if (carouselWrap.setPointerCapture) {
+            try {
+              carouselWrap.setPointerCapture(event.pointerId);
+            } catch {}
+          }
+        });
+
+        carouselWrap.addEventListener("pointermove", (event) => {
+          updateDrag(event.clientX, "p-" + event.pointerId);
+        });
+
+        carouselWrap.addEventListener("pointerup", (event) => {
+          finishDrag("p-" + event.pointerId);
+
+          if (carouselWrap.releasePointerCapture) {
+            try {
+              carouselWrap.releasePointerCapture(event.pointerId);
+            } catch {}
+          }
+        });
+
+        carouselWrap.addEventListener("pointercancel", () => {
+          cancelDrag();
+        });
+
+        carouselWrap.addEventListener("mousedown", (event) => {
+          if (event.button !== 0) return;
+          beginDrag(event.clientX, "mouse");
+        });
+
+        window.addEventListener("mousemove", (event) => {
+          updateDrag(event.clientX, "mouse");
+        });
+
+        window.addEventListener("mouseup", () => {
+          finishDrag("mouse");
+        });
+
+        carouselWrap.addEventListener(
+          "touchstart",
+          (event) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            beginDrag(touch.clientX, "touch");
+            event.preventDefault();
+          },
+          { passive: false },
+        );
+
+        carouselWrap.addEventListener(
+          "touchmove",
+          (event) => {
+            const touch = event.touches[0];
+            if (!touch) return;
+            updateDrag(touch.clientX, "touch");
+            event.preventDefault();
+          },
+          { passive: false },
+        );
+
+        window.addEventListener("touchend", () => {
+          finishDrag("touch");
+        });
+
+        window.addEventListener("touchcancel", () => {
+          cancelDrag();
+        });
+
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowRight") {
+            next();
+            restartAutoplay();
+          }
+          if (event.key === "ArrowLeft") {
+            prev();
+            restartAutoplay();
+          }
+        });
+
+        render();
+        startAutoplay();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Redmond University | Module Hub</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --surface: #ffffff;
+        --ink: #1f2937;
+        --muted: #4b5563;
+        --line: #d7dce4;
+        --accent: #0f766e;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Manrope", "Avenir Next", Avenir, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 0%, #e7efff 0, transparent 38%),
+          radial-gradient(circle at 85% 15%, #dbf8f1 0, transparent 44%),
+          var(--bg);
+      }
+
+      .shell {
+        width: min(1080px, calc(100% - 2rem));
+        margin: 2rem auto 3rem;
+      }
+
+      .header-top {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .locale-switch {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+
+      .locale-switch a {
+        padding: 0.35rem 0.7rem;
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .locale-switch a.active {
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      header {
+        margin-bottom: 1.25rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.4rem);
+      }
+
+      p {
+        margin: 0.75rem 0 0;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.9rem;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 1rem;
+        background: var(--surface);
+      }
+
+      .card h2 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+      }
+
+      .links {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      a {
+        text-decoration: none;
+        color: var(--accent);
+        font-weight: 650;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      footer {
+        margin-top: 1.25rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="header-top">
+        <div class="locale-switch" role="group" aria-label="Language selector">
+          <a id="lang-en" href="?lang=en" data-lang="en">EN</a>
+          <a id="lang-es" href="?lang=es" data-lang="es">ES</a>
+        </div>
+      </div>
+
+      <header>
+        <h1 data-i18n="heroTitle">Redmond University Module Hub</h1>
+        <p data-i18n="heroSubtitle">
+          This repository is organized by reusable apps, mini-games, and shared assets.
+        </p>
+      </header>
+
+      <section class="grid" aria-label="Project modules">
+        <article class="card">
+          <h2 data-i18n="preloginTitle">Pre-login</h2>
+          <div class="links">
+            <a href="./apps/prelogin/index.html" data-i18n="preloginOpen">Open pre-login page</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2 data-i18n="cardsTitle">Cards Library</h2>
+          <div class="links">
+            <a href="./apps/cards/index.html" data-i18n="cardsIndex">Cards index</a>
+            <a href="./apps/cards/farm-cards.html" data-i18n="cardsFarm">Farm cards</a>
+            <a href="./apps/cards/resource-carousel.html" data-i18n="cardsCarousel">Resource carousel</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2 data-i18n="badgesTitle">Video and Badges</h2>
+          <div class="links">
+            <a href="./apps/video/index.html" data-i18n="badgesVideo">Looping badge video</a>
+            <a href="./apps/badges/animated/index.html" data-i18n="badgesAnimated">Animated badge</a>
+            <a href="./apps/badges/builder/index.html" data-i18n="badgesBuilder">Badge builder</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2 data-i18n="gamesTitle">Mini-games</h2>
+          <div class="links">
+            <a href="./games/farm/index.html" data-i18n="gamesFarm">Farm to Table game</a>
+            <a href="./games/jeopardy/index.html" data-i18n="gamesJeopardy">Jeopardy game</a>
+            <a href="./games/smoothie/index.html" data-i18n="gamesSmoothie">Smoothie game</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2 data-i18n="componentTitle">Reusable Component</h2>
+          <div class="links">
+            <a href="./components/cta/index.html" data-i18n="componentOpen">CTA component</a>
+          </div>
+        </article>
+      </section>
+
+      <footer>
+        <span data-i18n="footerLabel">Structure:</span>
+        <code>apps/</code>, <code>games/</code>, <code>components/</code>, <code>assets/</code>.
+      </footer>
+    </main>
+
+    <script>
+      (function () {
+        const translations = {
+          en: {
+            pageTitle: "Redmond University | Module Hub",
+            heroTitle: "Redmond University Module Hub",
+            heroSubtitle:
+              "This repository is organized by reusable apps, mini-games, and shared assets.",
+            preloginTitle: "Pre-login",
+            preloginOpen: "Open pre-login page",
+            cardsTitle: "Cards Library",
+            cardsIndex: "Cards index",
+            cardsFarm: "Farm cards",
+            cardsCarousel: "Resource carousel",
+            badgesTitle: "Video and Badges",
+            badgesVideo: "Looping badge video",
+            badgesAnimated: "Animated badge",
+            badgesBuilder: "Badge builder",
+            gamesTitle: "Mini-games",
+            gamesFarm: "Farm to Table game",
+            gamesJeopardy: "Jeopardy game",
+            gamesSmoothie: "Smoothie game",
+            componentTitle: "Reusable Component",
+            componentOpen: "CTA component",
+            footerLabel: "Structure:",
+          },
+          es: {
+            pageTitle: "Redmond University | Centro de Modulos",
+            heroTitle: "Centro de Modulos de Redmond University",
+            heroSubtitle:
+              "Este repositorio esta organizado por apps reutilizables, minijuegos y assets compartidos.",
+            preloginTitle: "Prelogin",
+            preloginOpen: "Abrir pagina de prelogin",
+            cardsTitle: "Libreria de Cards",
+            cardsIndex: "Indice de cards",
+            cardsFarm: "Cards de granja",
+            cardsCarousel: "Carrusel de recursos",
+            badgesTitle: "Video e Insignias",
+            badgesVideo: "Video de insignias en bucle",
+            badgesAnimated: "Insignia animada",
+            badgesBuilder: "Generador de insignias",
+            gamesTitle: "Minijuegos",
+            gamesFarm: "Juego de la granja a la mesa",
+            gamesJeopardy: "Juego Jeopardy",
+            gamesSmoothie: "Juego de smoothie",
+            componentTitle: "Componente Reutilizable",
+            componentOpen: "Componente CTA",
+            footerLabel: "Estructura:",
+          },
+        };
+
+        const url = new URL(window.location.href);
+        const requestedLang = (url.searchParams.get("lang") || "").toLowerCase();
+        const fallbackLang = document.documentElement.lang === "es" ? "es" : "en";
+        const lang = requestedLang === "es" || requestedLang === "en" ? requestedLang : fallbackLang;
+
+        const dictionary = translations[lang];
+        document.documentElement.lang = lang;
+        document.title = dictionary.pageTitle;
+
+        document.querySelectorAll("[data-i18n]").forEach((element) => {
+          const key = element.dataset.i18n;
+          if (dictionary[key]) {
+            element.textContent = dictionary[key];
+          }
+        });
+
+        ["en", "es"].forEach((code) => {
+          const link = document.getElementById(`lang-${code}`);
+          if (!link) return;
+          const next = new URL(window.location.href);
+          next.searchParams.set("lang", code);
+          link.href = `${next.pathname}${next.search}${next.hash}`;
+          link.classList.toggle("active", code === lang);
+        });
+
+        document.querySelectorAll('a[href^="./"]').forEach((link) => {
+          if (link.dataset.lang) return;
+          const next = new URL(link.getAttribute("href"), window.location.href);
+          next.searchParams.set("lang", lang);
+          link.setAttribute("href", `${next.pathname}${next.search}${next.hash}`);
+        });
+      })();
+    </script>
+  </body>
+</html>

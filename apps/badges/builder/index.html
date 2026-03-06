@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Badge Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --gold: #A38A5B;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+            background: #fafafa;
+            color: #111;
+        }
+
+        header {
+            max-width: 980px;
+            margin: 24px auto 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header a {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            color: #111;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 980px;
+            margin: 0 auto 48px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 4px
+        }
+
+        .btn-primary {
+            padding: 10px 14px;
+            border: 1px solid #111;
+            border-radius: 6px;
+            background: #111;
+            color: #fff;
+            cursor: pointer
+        }
+
+        .btn {
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            color: #111;
+            text-decoration: none
+        }
+
+        .grid {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start
+        }
+
+        textarea {
+            width: 100%;
+            height: 320px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: ui-monospace, Menlo, Consolas, monospace
+        }
+
+        canvas {
+            width: 320px;
+            height: 320px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            background: #fff
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 style="font-size:18px;margin:0">Badge Generator</h1>
+        <nav>
+            <a href="../../../index.html">← Back to Home</a>
+        </nav>
+    </header>
+
+    <main>
+        <form id="badge-form">
+            <label>
+                <span>Student name</span>
+                <input id="bf-name" type="text" placeholder="Jane Doe" required />
+            </label>
+            <label>
+                <span>Course</span>
+                <input id="bf-course" type="text" placeholder="Intro to Hydration" required />
+            </label>
+            <label>
+                <span>Module</span>
+                <input id="bf-module" type="text" placeholder="Module 1: Basics" required />
+            </label>
+            <label>
+                <span>Date (optional)</span>
+                <input id="bf-date" type="date" />
+            </label>
+            <label style="grid-column:1/-1">
+                <span>Background image URL (optional)</span>
+                <input id="bf-bg" type="url" placeholder="https://.../background.png" />
+            </label>
+            <div class="actions">
+                <button id="bf-generate" type="submit" class="btn-primary" disabled>Generate Badge</button>
+                <a id="bf-download" download="badge.png" class="btn" style="display:none">Download PNG</a>
+            </div>
+        </form>
+
+        <div class="grid">
+            <div>
+                <h3 style="margin:6px 0 10px;">Preview</h3>
+                <canvas id="badge-canvas" width="800" height="800"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        /**************** CONFIG DEL PROXY (ajusta la URL si cambia) ****************/
+        const API_BASE = "https://canvas-proxy.moisess.workers.dev"; // <-- tu Worker URL
+        const BADGE_NS = "pixel.badges";
+
+        /**************** HELPER PARA LLAMAR AL WORKER ****************/
+        async function w(path) {
+            const url = API_BASE + path;
+            const res = await fetch(url, { method: "GET" });
+            const text = await res.text();
+            if (!res.ok) {
+                throw new Error(`API ${path} -> ${res.status}: ${text.substring(0, 180)}`);
+            }
+            try { return JSON.parse(text); } catch { return text; }
+        }
+
+        /**************** Canvas data via proxy (sin tokens en el navegador) ****************/
+        async function getSelf() { return w(`/api/self`); }
+        async function getCoursesPreferred() {
+            // 1) cursos activos del usuario
+            let courses = await w(`/api/courses`);
+            if (Array.isArray(courses) && courses.length) return courses;
+
+            // 2) favoritos (dashboard)
+            courses = await w(`/api/fav-courses`);
+            if (Array.isArray(courses) && courses.length) return courses;
+
+            // 3) enrollments -> course_id -> course
+            const enrolls = await w(`/api/enrollments`);
+            const ids = [...new Set((enrolls || []).map(e => e.course_id))];
+            const resolved = [];
+            for (const id of ids.slice(0, 5)) {
+                try { resolved.push(await getCourse(id)); } catch { }
+            }
+            return resolved;
+        }
+        async function getCourse(courseId) { return w(`/api/course?courseId=${courseId}`); }
+        async function getModules(courseId) { return w(`/api/modules?courseId=${courseId}`); }
+        async function getModuleItems(courseId, moduleId) { return w(`/api/module-items?courseId=${courseId}&moduleId=${moduleId}`); }
+
+        /**************** Custom Data helpers ****************/
+        async function getCustomData(ns = BADGE_NS) {
+            const url = API_BASE + `/api/custom-data?ns=${encodeURIComponent(ns)}`;
+            const res = await fetch(url, { method: 'GET' });
+            const text = await res.text();
+            if (res.status === 404) return {}; // namespace vacío en Canvas
+            if (!res.ok) throw new Error(`GET custom-data -> ${res.status}: ${text.substring(0, 180)}`);
+            try { return JSON.parse(text); } catch { return {}; }
+        }
+        async function putCustomData(payload, ns = BADGE_NS) {
+            const res = await fetch(API_BASE + `/api/custom-data?ns=${encodeURIComponent(ns)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const text = await res.text();
+            if (!res.ok) throw new Error(`PUT custom-data -> ${res.status}: ${text.substring(0, 180)}`);
+            try { return JSON.parse(text); } catch { return text; }
+        }
+
+        function makeKey(courseId, moduleId) { return `${courseId}:${moduleId}`; }
+
+        function tryFindModuleIdByName(mods, nameFromQuery) {
+            if (!mods || !nameFromQuery) return null;
+            const needle = nameFromQuery.trim().toLowerCase();
+            const hit = mods.find(m => (m.name || '').trim().toLowerCase() === needle);
+            return hit ? hit.id : null;
+        }
+
+        /**************** ELEMENTOS UI ****************/
+        const form = document.getElementById('badge-form');
+        const canvas = document.getElementById('badge-canvas');
+        const ctx = canvas.getContext('2d');
+        const dl = document.getElementById('bf-download');
+        const btnGenerate = document.getElementById('bf-generate');
+        // IDs resueltos que usaremos para guardar/leer Custom Data
+        const RESOLVED = { courseId: null, moduleId: null };
+
+        /**************** AUTOCOMPLETADO DESDE CANVAS ****************/
+        (async function initAutoFill() {
+            try {
+                // Deshabilitado mientras cargamos datos
+                btnGenerate.disabled = true;
+                btnGenerate.textContent = 'Loading…';
+
+                const qs = new URLSearchParams(location.search);
+                let courseId = qs.get("courseId");
+                let moduleId = qs.get("moduleId");
+                const courseNameParam = qs.get("courseName");
+                const moduleNameParam = qs.get("moduleName");
+                if (courseNameParam) document.getElementById('bf-course').value = courseNameParam;
+                if (moduleNameParam) document.getElementById('bf-module').value = moduleNameParam;
+
+                // 1) Usuario (nombre)
+                const me = await getSelf();
+                document.getElementById('bf-name').value = me.name || me.short_name || "Student";
+
+                // 2) Curso
+                if (!courseId) {
+                    const courses = await getCoursesPreferred();
+
+                    let candidate = null;
+
+                    if (courseNameParam) {
+                        const needle = courseNameParam.trim().toLowerCase();
+                        candidate = (Array.isArray(courses) ? courses : []).find(
+                            c => (c.name || '').trim().toLowerCase() === needle
+                        );
+                        if (!candidate) {
+                            console.warn(`El courseName='${courseNameParam}' no existe entre tus cursos. Usando el primero.`);
+                        }
+                    }
+
+                    if (!candidate && Array.isArray(courses) && courses.length) {
+                        candidate = courses[0];
+                    }
+
+                    courseId = candidate?.id || candidate?.course_id;
+                }
+                if (!courseId) throw new Error('No courseId available');
+                const course = await getCourse(courseId);
+                if (!courseNameParam) {
+                    document.getElementById('bf-course').value = course?.name || `Course ${courseId}`;
+                }
+
+                // 3) Módulo
+                const mods = await getModules(courseId);
+                // If a moduleName=... comes in the URL, prefer it when moduleId is absent
+                if (!moduleId && moduleNameParam) {
+                    moduleId = tryFindModuleIdByName(mods, moduleNameParam);
+                }
+                // If still no moduleId, default to first module
+                if (!moduleId) moduleId = mods?.[0]?.id;
+                // Validate that the requested moduleId actually exists in this course
+                let mod = (mods || []).find(m => String(m.id) === String(moduleId));
+                if (!mod) {
+                    console.warn(`El moduleId=${moduleId} no existe en courseId=${courseId}. Using first module.`);
+                    moduleId = mods?.[0]?.id;
+                    mod = (mods || []).find(m => String(m.id) === String(moduleId));
+                }
+                if (!moduleNameParam) {
+                    document.getElementById('bf-module').value = mod?.name || `Module ${moduleId}`;
+                }
+                // Guardar los IDs resueltos globalmente
+                RESOLVED.courseId = courseId;
+                RESOLVED.moduleId = moduleId;
+
+                // 3.5) Revisar si ya hay emisión guardada para este curso/módulo (compat IDs y nombres)
+                let issuedRecord = null;
+                try {
+                    const cd = await getCustomData();
+                    const store = (cd && cd.data) ? cd.data : cd; // Canvas GET returns { ns, data }
+                    const assertions = (store && store.badges) || (store && store.assertions) || [];
+                    console.log('Emisiones previas leídas de Custom Data:', assertions);
+                    const qsLocal = new URLSearchParams(location.search);
+                    const courseNameParamLocal = qsLocal.get("courseName") || document.getElementById('bf-course').value;
+                    const moduleNameParamLocal = qsLocal.get("moduleName") || document.getElementById('bf-module').value;
+
+                    const compatKeys = [
+                        makeKey(RESOLVED.courseId, RESOLVED.moduleId),                                 // v2 (IDs)
+                        `${(courseNameParamLocal || '').trim()}:${(moduleNameParamLocal || '').trim()}`    // v1 (nombres)
+                    ].filter(Boolean);
+
+                    issuedRecord = assertions.find(a => compatKeys.includes(String(a.key)));
+                    console.log('Emisión previa encontrada (si existe):', issuedRecord);
+                    if (issuedRecord) {
+                        // Prefill fecha con la guardada si estaba vacía
+                        const dateEl = document.getElementById('bf-date');
+                        if (issuedRecord.issuedAt && dateEl && !dateEl.value) {
+                            dateEl.value = issuedRecord.issuedAt;
+                        }
+                        // Autogenera el preview con los datos actuales (sin click)
+                        await renderPreviewFromInputs(issuedRecord.issuedAt);
+                        // Oculta el botón y deja visible la descarga
+                        btnGenerate.style.display = 'none';
+                        dl.style.display = 'inline-block';
+                    }
+                } catch (e) {
+                    console.warn('Lectura Custom Data falló (no bloqueante):', e.message || e);
+                }
+
+                // 4) Estado de completion del módulo
+                const items = await getModuleItems(courseId, moduleId);
+                const required = items.filter(i => i?.completion_requirement).length;
+                const done = items.filter(i => i?.completion_requirement?.completed).length;
+
+                // Fallback policy: if the module has 0 requirements configured in Canvas,
+                // we can't track per‑student completion. By default we ENABLE the button.
+                // Use ?strict=1 in the URL to require requirements and keep it disabled.
+                const strict = qs.get("strict") === "1";
+                let complete;
+                if (required === 0) {
+                    complete = !strict; // enable unless strict mode requested
+                    console.warn(
+                        `Módulo ${moduleId} sin requisitos de finalización en Canvas; ` +
+                        (complete ? 'habilitando emisión (fallback).' : 'modo estricto activo: mantener deshabilitado.')
+                    );
+                } else {
+                    complete = done >= required;
+                }
+
+                console.log(`Módulo ${moduleId}: requeridos=${required}, completados=${done}, complete=${complete}`);
+                console.log('Items del módulo:', items);
+
+                // 5) Fecha default hoy si está vacío
+                const dateEl = document.getElementById('bf-date');
+                if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().slice(0, 10);
+
+                // 6) Habilitar/Deshabilitar botón
+                if (issuedRecord) {
+                    // Update UI: ocultar botón y mostrar descarga
+                    btnGenerate.style.display = 'none';
+                    dl.style.display = 'inline-block';
+                } else {
+                    btnGenerate.disabled = !complete;
+                    btnGenerate.textContent = complete ? 'Generate Badge' : `Complete module to enable`;
+                }
+
+                // Debug opcional en consola
+                if (!complete && required > 0) {
+                    const pending = items.filter(i => i?.completion_requirement && !i.completion_requirement.completed);
+                    console.log('Items pendientes:', pending.map(p => p.title));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('No fue posible traer datos de Canvas desde el proxy. ' + (e && e.message ? e.message : 'Verifica el Worker y permisos.'));
+                // En caso de error permitimos generar manualmente
+                btnGenerate.disabled = false;
+                btnGenerate.textContent = 'Generate Badge';
+            }
+        })();
+
+        /**************** GENERACIÓN DE SVG Y PNG (sin cambios de lógica) ****************/
+        function makeBadgeSVG({ name, course, module, date, bgUrl }) {
+            const issued = date || new Date().toISOString().slice(0, 10);
+            const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const title = `${esc(module)} — ${esc(course)}`;
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111"/>
+      <stop offset="100%" stop-color="#444"/>
+    </linearGradient>
+    <clipPath id="rounded"><rect x="0" y="0" width="800" height="800" rx="36" ry="36"/></clipPath>
+  </defs>
+  <g clip-path="url(#rounded)">
+    <rect width="800" height="800" fill="url(#g)"/>
+    ${bgUrl ? `<image href="${esc(bgUrl)}" x="0" y="0" width="800" height="800" preserveAspectRatio="xMidYMid slice" opacity="0.25"/>` : ''}
+    <circle cx="400" cy="280" r="120" fill="#A38A5B"/>
+    <text x="400" y="290" text-anchor="middle" fill="#fff" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto" font-size="120" font-weight="700">★</text>
+    <text x="400" y="450" text-anchor="middle" fill="#fff" font-family="Inter, ui-sans-serif, system-ui" font-size="30" opacity=".95">${title}</text>
+    <text x="400" y="500" text-anchor="middle" fill="#fff" font-family="Inter, ui-sans-serif, system-ui" font-size="22" opacity=".9">Awarded to</text>
+    <text x="400" y="540" text-anchor="middle" fill="#fff" font-family="Inter, ui-sans-serif, system-ui" font-size="32" font-weight="700">${esc(name)}</text>
+    <text x="400" y="585" text-anchor="middle" fill="#fff" font-family="Inter, ui-sans-serif, system-ui" font-size="18" opacity=".8">Issued: ${esc(issued)}</text>
+  </g>
+</svg>`;
+        }
+
+        async function svgToPng(svgText) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const svgBlob = new Blob([svgText], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(svgBlob);
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+                    canvas.toBlob((blob) => {
+                        const dlUrl = URL.createObjectURL(blob);
+                        dl.href = dlUrl;
+                        dl.style.display = 'inline-block';
+                        resolve();
+                    }, 'image/png');
+                };
+                img.onerror = reject;
+                img.src = url;
+            });
+        }
+
+        async function renderPreviewFromInputs(dateOverride) {
+            const name = document.getElementById('bf-name').value.trim();
+            const course = document.getElementById('bf-course').value.trim();
+            const module = document.getElementById('bf-module').value.trim();
+            const bgUrl = document.getElementById('bf-bg').value.trim();
+            const dateEl = document.getElementById('bf-date');
+            const date = (dateOverride || (dateEl && dateEl.value) || new Date().toISOString().slice(0, 10));
+            const svg = makeBadgeSVG({ name, course, module, date, bgUrl });
+            await svgToPng(svg);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('bf-name').value.trim();
+            const course = document.getElementById('bf-course').value.trim();
+            const module = document.getElementById('bf-module').value.trim();
+            const date = document.getElementById('bf-date').value;
+            const bgUrl = document.getElementById('bf-bg').value.trim();
+            const svg = makeBadgeSVG({ name, course, module, date, bgUrl });
+            await svgToPng(svg);
+            // Save issuance to Custom Data
+            try {
+                const courseId = RESOLVED.courseId;
+                const moduleId = RESOLVED.moduleId;
+                const key = makeKey(courseId, moduleId);
+                if (!courseId || !moduleId) {
+                    console.warn('No courseId/moduleId resolved; omitiendo guardado de Custom Data.');
+                } else {
+                    // Intenta leer; si falla, seguimos con objeto vacío
+                    let base = {};
+                    try { base = await getCustomData(); } catch (_) { base = {}; }
+                    const store = (base && base.data) ? base.data : base;
+                    const list = Array.isArray(store.badges) ? store.badges : [];
+
+                    const entry = {
+                        key,
+                        courseId,
+                        moduleId,
+                        issuedAt: date || new Date().toISOString().slice(0, 10),
+                        title: `${module} — ${course}`
+                    };
+                    const idx = list.findIndex(x => x.key === key);
+                    if (idx >= 0) list[idx] = entry; else list.push(entry);
+
+                    await putCustomData({ badges: list });
+                    console.log('Custom Data actualizado', { badges: list });
+                    // Update UI state to reflect issuance
+                    btnGenerate.disabled = false;
+                    btnGenerate.textContent = 'Re-generate Badge';
+                }
+            } catch (err) {
+                console.warn('No se pudo guardar en Custom Data:', err.message || err);
+            }
+        });
+    </script>
+</body>
+
+</html>
