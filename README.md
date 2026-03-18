@@ -10,25 +10,25 @@ Static project for training modules and mini-games embedded in Canvas.
 │   ├── badges/
 │   ├── cards/
 │   └── video/
+├── assets/
+│   ├── login/
+│   └── media/
 ├── components/
 │   └── cta/
 ├── games/
 │   ├── farm/
 │   ├── jeopardy/
 │   └── smoothie/
-├── assets/
-│   ├── imgs/
-│   └── media/
-├── prelogin/
+├── menu/
 └── index.html
 ```
 
-`prelogin` is at the root to keep a simpler route.
+The login page lives at the root, and its shared files are stored in `assets/login/`.
 
 ## Main Routes
 
-- Main hub: `index.html`
-- Prelogin: `prelogin/index.html`
+- Main login: `index.html`
+- Menu hub: `menu/index.html`
 - Cards: `apps/cards/index.html`
 - Video: `apps/video/index.html`
 - Reusable CTA: `components/cta/index.html`
@@ -42,7 +42,7 @@ Static project for training modules and mini-games embedded in Canvas.
 These pages support `?lang=en` or `?lang=es`:
 
 - `index.html`
-- `prelogin/index.html`
+- `menu/index.html`
 - `apps/video/index.html`
 - `games/farm/index.html`
 - `games/jeopardy/index.html`
