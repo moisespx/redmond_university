@@ -868,41 +868,49 @@ function animateSpinner(result) {
   });
 }
 
-function playEngine(durationMs) {
-  if (durationMs <= 0) return;
+function ensureAudioContext() {
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
-  if (!audioContext) {
+  if (!AudioCtx) return null;
+  if (!audioContext || audioContext.state === "closed") {
     audioContext = new AudioCtx();
   }
   if (audioContext.state === "suspended") {
-    audioContext.resume();
+    audioContext.resume().catch(() => {
+      // Ignore resume failures caused by browser autoplay restrictions.
+    });
   }
+  return audioContext;
+}
 
-  const now = audioContext.currentTime;
+function playEngine(durationMs) {
+  if (durationMs <= 0) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
   const duration = durationMs / 1000;
 
-  const filter = audioContext.createBiquadFilter();
+  const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
   filter.frequency.setValueAtTime(220, now);
 
-  const gain = audioContext.createGain();
+  const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.exponentialRampToValueAtTime(0.14, now + 0.12);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  const engine = audioContext.createOscillator();
+  const engine = ctx.createOscillator();
   engine.type = "sawtooth";
   engine.frequency.setValueAtTime(70, now);
 
-  const lfo = audioContext.createOscillator();
+  const lfo = ctx.createOscillator();
   lfo.type = "sine";
   lfo.frequency.setValueAtTime(6, now);
-  const lfoGain = audioContext.createGain();
+  const lfoGain = ctx.createGain();
   lfoGain.gain.setValueAtTime(12, now);
 
   lfo.connect(lfoGain).connect(engine.frequency);
-  engine.connect(filter).connect(gain).connect(audioContext.destination);
+  engine.connect(filter).connect(gain).connect(ctx.destination);
 
   engine.start(now);
   lfo.start(now);
@@ -912,33 +920,27 @@ function playEngine(durationMs) {
 
 function playSadEngine(durationMs) {
   if (durationMs <= 0) return;
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
-  if (!audioContext) {
-    audioContext = new AudioCtx();
-  }
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
 
-  const now = audioContext.currentTime;
+  const now = ctx.currentTime;
   const duration = durationMs / 1000;
 
-  const filter = audioContext.createBiquadFilter();
+  const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
   filter.frequency.setValueAtTime(180, now);
 
-  const gain = audioContext.createGain();
+  const gain = ctx.createGain();
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.exponentialRampToValueAtTime(0.1, now + 0.12);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-  const engine = audioContext.createOscillator();
+  const engine = ctx.createOscillator();
   engine.type = "triangle";
   engine.frequency.setValueAtTime(120, now);
   engine.frequency.exponentialRampToValueAtTime(70, now + duration);
 
-  engine.connect(filter).connect(gain).connect(audioContext.destination);
+  engine.connect(filter).connect(gain).connect(ctx.destination);
   engine.start(now);
   engine.stop(now + duration + 0.05);
 }
@@ -1053,37 +1055,75 @@ function getApplauseBuffer() {
   return buffer;
 }
 
+function playCelebration() {
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const start = ctx.currentTime + 0.05;
+  const melody = [523.25, 659.25, 783.99, 1046.5];
+  melody.forEach((frequency, index) => {
+    const noteStart = start + index * 0.12;
+    const noteEnd = noteStart + 0.28;
+    const oscillator = ctx.createOscillator();
+    oscillator.type = index < 2 ? "triangle" : "square";
+    oscillator.frequency.setValueAtTime(frequency, noteStart);
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(2400, noteStart);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, noteStart);
+    gain.gain.exponentialRampToValueAtTime(0.16, noteStart + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+
+    oscillator.connect(filter).connect(gain).connect(ctx.destination);
+    oscillator.start(noteStart);
+    oscillator.stop(noteEnd + 0.03);
+  });
+
+  [261.63, 329.63, 392].forEach((frequency) => {
+    const noteStart = start + 0.45;
+    const oscillator = ctx.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, noteStart);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, noteStart);
+    gain.gain.exponentialRampToValueAtTime(0.1, noteStart + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 0.5);
+
+    oscillator.connect(gain).connect(ctx.destination);
+    oscillator.start(noteStart);
+    oscillator.stop(noteStart + 0.55);
+  });
+}
+
 function playApplause() {
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  if (!AudioCtx) return;
-  if (!audioContext) {
-    audioContext = new AudioCtx();
-  }
-  if (audioContext.state === "suspended") {
-    audioContext.resume();
-  }
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
   const buffer = getApplauseBuffer();
   if (!buffer) return;
 
-  const now = audioContext.currentTime;
-  const master = audioContext.createGain();
+  const now = ctx.currentTime + 0.04;
+  const master = ctx.createGain();
   master.gain.setValueAtTime(0.0001, now);
-  master.gain.exponentialRampToValueAtTime(0.1, now + 0.03);
+  master.gain.exponentialRampToValueAtTime(0.16, now + 0.03);
   master.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
-  master.connect(audioContext.destination);
+  master.connect(ctx.destination);
 
   const bursts = 7;
   for (let i = 0; i < bursts; i += 1) {
     const start = now + i * 0.18 + Math.random() * 0.06;
     const duration = 0.12 + Math.random() * 0.08;
-    const source = audioContext.createBufferSource();
+    const source = ctx.createBufferSource();
     source.buffer = buffer;
-    const filter = audioContext.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.frequency.setValueAtTime(1100 + Math.random() * 700, start);
-    const gain = audioContext.createGain();
+    filter.frequency.setValueAtTime(800 + Math.random() * 500, start);
+    const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(0.22, start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.34, start + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
     source.connect(filter).connect(gain).connect(master);
     source.start(start);
@@ -1151,6 +1191,11 @@ function handleLanding() {
 
   if (space.type === "hazard") {
     openHazardModal();
+    return;
+  }
+
+  if (space.type === "finish") {
+    openBonusModal(space);
     return;
   }
 
@@ -1311,7 +1356,9 @@ async function applyOutcome() {
   if (type === "bonus") {
     state.bonusAnswered = true;
     updateBoard();
-    openFinishModal();
+    launchConfetti();
+    playCelebration();
+    playApplause();
     return;
   }
 
@@ -1339,6 +1386,7 @@ function openFinishModal() {
   setButtonsDisabled(true);
   openModal(finishModal);
   launchConfetti();
+  playCelebration();
   playApplause();
 }
 
