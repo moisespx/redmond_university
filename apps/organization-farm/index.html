@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redmond Farm Organization Map</title>
+    <style>
+      :root {
+        --page-bg: #ffffff;
+        --card-bg: rgba(255, 255, 255, 0.94);
+        --card-border: rgba(170, 184, 166, 0.8);
+        --text-main: #1a1719;
+        --text-muted: #5a5c59;
+        --shadow-hover: 0 20px 28px rgba(43, 39, 32, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+        background: var(--page-bg);
+        color: var(--text-main);
+      }
+
+      .page {
+        width: min(100%, 1800px);
+        margin: 0 auto;
+        padding: 0;
+      }
+
+      .scene-shell {
+        overflow: visible;
+      }
+
+      .scene-scroll {
+        overflow-x: auto;
+        overflow-y: visible;
+      }
+
+      .scene {
+        position: relative;
+        width: min(96%, 1520px);
+        min-width: 980px;
+        aspect-ratio: 4000 / 2842;
+        margin: 0 auto;
+        overflow: visible;
+        background: transparent;
+      }
+
+      .scene__image {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .brand {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--w);
+        height: var(--h);
+        transform: translate(-50%, -50%);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        border-radius: 28px;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .brand:hover,
+      .brand:focus-visible,
+      .brand.is-active {
+        z-index: 40;
+      }
+
+      .brand:focus-visible {
+        outline: 2px solid rgba(26, 23, 25, 0.6);
+        outline-offset: 4px;
+      }
+
+      .brand__bubble {
+        position: absolute;
+        z-index: 80;
+        width: clamp(260px, 26vw, 360px);
+        padding: 18px 20px;
+        border-radius: 22px;
+        border: 1px solid var(--card-border);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(250, 249, 244, 0.94));
+        box-shadow: var(--shadow-hover);
+        text-align: left;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
+      }
+
+      .brand__bubble::after {
+        content: "";
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: #fbfaf6;
+        border-right: 1px solid var(--card-border);
+        border-bottom: 1px solid var(--card-border);
+      }
+
+      .brand__bubble strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .brand__bubble p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .brand:hover .brand__bubble,
+      .brand:focus-visible .brand__bubble,
+      .brand.is-active .brand__bubble {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .bubble-up .brand__bubble {
+        left: 50%;
+        bottom: calc(100% + 22px);
+        transform: translate(-50%, 12px) scale(0.97);
+      }
+
+      .bubble-up .brand__bubble::after {
+        left: calc(50% - 8px);
+        bottom: -9px;
+        transform: rotate(45deg);
+      }
+
+      .bubble-down .brand__bubble {
+        left: 50%;
+        top: calc(100% + 22px);
+        transform: translate(-50%, -12px) scale(0.97);
+      }
+
+      .bubble-down .brand__bubble::after {
+        left: calc(50% - 8px);
+        top: -9px;
+        transform: rotate(225deg);
+      }
+
+      .bubble-left .brand__bubble {
+        right: calc(100% + 22px);
+        top: 50%;
+        transform: translate(12px, -50%) scale(0.97);
+      }
+
+      .bubble-left .brand__bubble::after {
+        right: -9px;
+        top: calc(50% - 8px);
+        transform: rotate(315deg);
+      }
+
+      .bubble-right .brand__bubble {
+        left: calc(100% + 22px);
+        top: 50%;
+        transform: translate(-12px, -50%) scale(0.97);
+      }
+
+      .bubble-right .brand__bubble::after {
+        left: -9px;
+        top: calc(50% - 8px);
+        transform: rotate(135deg);
+      }
+
+      .brand:hover .brand__bubble,
+      .brand:focus-visible .brand__bubble,
+      .brand.is-active .brand__bubble {
+        transform: translate(0, 0) scale(1);
+      }
+
+      .bubble-up:hover .brand__bubble,
+      .bubble-up:focus-visible .brand__bubble,
+      .bubble-up.is-active .brand__bubble {
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .bubble-down:hover .brand__bubble,
+      .bubble-down:focus-visible .brand__bubble,
+      .bubble-down.is-active .brand__bubble {
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .bubble-left:hover .brand__bubble,
+      .bubble-left:focus-visible .brand__bubble,
+      .bubble-left.is-active .brand__bubble {
+        transform: translate(0, -50%) scale(1);
+      }
+
+      .bubble-right:hover .brand__bubble,
+      .bubble-right:focus-visible .brand__bubble,
+      .bubble-right.is-active .brand__bubble {
+        transform: translate(0, -50%) scale(1);
+      }
+
+      @media (max-width: 900px) {
+        .page {
+          padding: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="scene-shell" aria-label="Interactive farm organization map">
+        <div class="scene-scroll">
+          <div class="scene" id="scene">
+            <img
+              class="scene__image"
+              src="./RF_map 2.jpg"
+              alt="Redmond farm organization map"
+            />
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const scene = document.getElementById("scene");
+      const productionKitchenCopy =
+        "Responsible for making our brioche buns, coconut oil chips, salad dressings, and so much more!";
+
+      const hotspots = [
+        {
+          label: "House Made Products Springville",
+          copy: productionKitchenCopy,
+          direction: "bubble-down",
+          x: "34.55%",
+          y: "11.95%",
+          w: "10.80%",
+          h: "7.20%",
+        },
+        {
+          label: "Redmond Market Springville",
+          copy:
+            "Our markets provide access to many nutrient-dense products, including our House Made line and dairy products from our farm!",
+          direction: "bubble-down",
+          x: "52.10%",
+          y: "11.95%",
+          w: "10.80%",
+          h: "7.20%",
+        },
+        {
+          label: "Meat Packing Facility Salina",
+          copy:
+            "This is where Redmond meat is harvested and processed, then labeled and sent to be sold in our markets and kitchens.",
+          direction: "bubble-right",
+          x: "19.95%",
+          y: "30.05%",
+          w: "11.70%",
+          h: "9.90%",
+        },
+        {
+          label: "Redmond Production Kitchen Springville",
+          copy: productionKitchenCopy,
+          direction: "bubble-up",
+          x: "46.15%",
+          y: "29.95%",
+          w: "14.20%",
+          h: "10.00%",
+        },
+        {
+          label: "Redmond Market and Kitchen Orem",
+          copy:
+            "Market locations with kitchens that provide a nourishing alternative to fast-casual dining… using many products from our house made line!",
+          direction: "bubble-left",
+          x: "72.85%",
+          y: "25.60%",
+          w: "17.00%",
+          h: "10.40%",
+        },
+        {
+          label: "Redmond Market Truck",
+          copy:
+            "With our market truck, we’ve been able to expand our product offerings to five additional locations!",
+          direction: "bubble-right",
+          x: "14.10%",
+          y: "65.10%",
+          w: "12.20%",
+          h: "8.60%",
+        },
+        {
+          label: "Redmond Heritage Farm",
+          copy:
+            "Where the raw milk processing begins… at the farm with our amazing farmers and Redmond’s happy, healthy cows.",
+          direction: "bubble-up",
+          x: "46.00%",
+          y: "68.20%",
+          w: "15.60%",
+          h: "11.30%",
+        },
+        {
+          label: "Freight Truck",
+          copy:
+            "Our truck drivers are the ones who make sure all products get to where they need to go at the right time…making our delivery process as smooth as Redmond’s Real Raw Butter.",
+          direction: "bubble-down",
+          x: "49.95%",
+          y: "74.15%",
+          w: "12.00%",
+          h: "6.60%",
+        },
+        {
+          label: "Redmond Life Office / Warehouse Heber",
+          copy:
+            "Here is where the magic happens with our salt and Re-Lyte! It’s packaged, labeled, and picked up by the freight truck to be distributed to our markets.",
+          direction: "bubble-left",
+          x: "76.95%",
+          y: "58.10%",
+          w: "16.40%",
+          h: "9.70%",
+        },
+        {
+          label: "Redmond Market Heber",
+          copy:
+            "Our markets provide access to many nutrient-dense products, including our House Made line and dairy products from our farm!",
+          direction: "bubble-left",
+          x: "83.35%",
+          y: "75.20%",
+          w: "11.10%",
+          h: "8.10%",
+        },
+        {
+          label: "Redmond Market Roy",
+          copy:
+            "Our markets provide access to many nutrient-dense products, including our House Made line and dairy products from our farm!",
+          direction: "bubble-up",
+          x: "34.30%",
+          y: "87.70%",
+          w: "11.10%",
+          h: "8.10%",
+        },
+        {
+          label: "Redmond Market and Kitchen Sugarhouse",
+          copy:
+            "Market locations with kitchens that provide a nourishing alternative to fast-casual dining… using many products from our house made line!",
+          direction: "bubble-up",
+          x: "58.45%",
+          y: "92.15%",
+          w: "16.60%",
+          h: "10.10%",
+        },
+      ];
+
+      hotspots.forEach((spot) => {
+        const button = document.createElement("button");
+        button.className = `brand ${spot.direction}`;
+        button.type = "button";
+        button.setAttribute("aria-label", spot.label);
+        button.style.setProperty("--x", spot.x);
+        button.style.setProperty("--y", spot.y);
+        button.style.setProperty("--w", spot.w);
+        button.style.setProperty("--h", spot.h);
+
+        const bubble = document.createElement("span");
+        bubble.className = "brand__bubble";
+        bubble.setAttribute("role", "tooltip");
+
+        const title = document.createElement("strong");
+        title.textContent = spot.label;
+
+        const copy = document.createElement("p");
+        copy.textContent = spot.copy;
+
+        bubble.append(title, copy);
+        button.appendChild(bubble);
+        scene.appendChild(button);
+      });
+
+      const brands = document.querySelectorAll(".brand");
+
+      const clearActiveBrands = (ignore = null) => {
+        brands.forEach((brand) => {
+          if (brand !== ignore) {
+            brand.classList.remove("is-active");
+          }
+        });
+      };
+
+      brands.forEach((brand) => {
+        brand.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const willActivate = !brand.classList.contains("is-active");
+          clearActiveBrands(brand);
+          brand.classList.toggle("is-active", willActivate);
+        });
+      });
+
+      document.addEventListener("click", () => {
+        clearActiveBrands();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          clearActiveBrands();
+        }
+      });
+    </script>
+  </body>
+</html>
