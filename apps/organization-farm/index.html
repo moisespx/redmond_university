@@ -73,7 +73,10 @@
         border: 0;
         background: transparent;
         border-radius: 28px;
-        cursor: pointer;
+        cursor:
+          url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><path fill="%231a1719" d="M13 4c1.7 0 3 1.3 3 3v11h1V3c0-1.7 1.3-3 3-3s3 1.3 3 3v15h1V5c0-1.7 1.3-3 3-3s3 1.3 3 3v13h1V8c0-1.7 1.3-3 3-3s3 1.3 3 3v15.2c0 2.8-.8 5.6-2.4 7.9L31 42H15.8l-7.4-13.3A7 7 0 0 1 7.5 25V15.5c0-1.4 1.1-2.5 2.5-2.5H13V7c0-1.7 1.3-3 3-3z"/></svg>')
+            10 6,
+          pointer;
         z-index: 2;
       }
 
@@ -86,6 +89,18 @@
       .brand:focus-visible {
         outline: 2px solid rgba(26, 23, 25, 0.6);
         outline-offset: 4px;
+      }
+
+      .debug-hitboxes .brand {
+        border: 2px dashed rgba(214, 132, 18, 0.95);
+        background: rgba(245, 179, 66, 0.16);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+      }
+
+      .debug-hitboxes .brand:hover,
+      .debug-hitboxes .brand:focus-visible,
+      .debug-hitboxes .brand.is-active {
+        background: rgba(245, 179, 66, 0.24);
       }
 
       .brand__bubble {
@@ -223,7 +238,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="debug-hitboxes">
     <main class="page">
       <section class="scene-shell" aria-label="Interactive farm organization map">
         <div class="scene-scroll">
@@ -307,10 +322,10 @@
           copy:
             "Where the raw milk processing begins… at the farm with our amazing farmers and Redmond’s happy, healthy cows.",
           direction: "bubble-up",
-          x: "46.00%",
-          y: "68.20%",
+          x: "46.70%",
+          y: "63.60%",
           w: "15.60%",
-          h: "11.30%",
+          h: "13.20%",
         },
         {
           label: "Freight Truck",
