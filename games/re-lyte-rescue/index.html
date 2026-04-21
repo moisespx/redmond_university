@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Re-Lyte Rescue</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="game-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Mini-game</p>
+          <h1>Re-Lyte Rescue</h1>
+          <p id="instruction-text" class="instruction" role="status" aria-live="polite">
+            Click the pitcher or cup to give him water.
+          </p>
+        </div>
+
+        <button id="reset-btn" class="reset-btn" type="button">Replay</button>
+      </header>
+
+      <main class="layout">
+        <aside class="card status-panel" aria-label="Hydration status">
+          <section class="meter-card">
+            <div class="meter-header">
+              <span>Hydration</span>
+              <strong id="hydration-label">0%</strong>
+            </div>
+            <div class="hydration-track" aria-hidden="true">
+              <div id="hydration-fill" class="hydration-fill"></div>
+            </div>
+          </section>
+
+          <section class="retention-card">
+            <h2>Leak meter</h2>
+            <p id="retention-copy">Big leak. Almost everything becomes puddle.</p>
+          </section>
+
+          <section class="checklist-card">
+            <div class="section-heading">
+              <h2>Electrolyte checklist</h2>
+              <span id="electrolyte-count">0 / 4</span>
+            </div>
+
+            <ul class="checklist" aria-label="Electrolytes">
+              <li class="checklist-item" data-check="sodium">
+                <span class="check-dot" aria-hidden="true"></span>
+                <span class="check-copy">Sodium</span>
+              </li>
+              <li class="checklist-item" data-check="potassium">
+                <span class="check-dot" aria-hidden="true"></span>
+                <span class="check-copy">Potassium</span>
+              </li>
+              <li class="checklist-item" data-check="magnesium">
+                <span class="check-dot" aria-hidden="true"></span>
+                <span class="check-copy">Magnesium</span>
+              </li>
+              <li class="checklist-item" data-check="calcium">
+                <span class="check-dot" aria-hidden="true"></span>
+                <span class="check-copy">Calcium</span>
+              </li>
+            </ul>
+          </section>
+
+          <p class="tiny-note">Fun visual metaphor only. Not a medical simulation.</p>
+        </aside>
+
+        <section class="card scene-card" aria-label="Game scene">
+          <div id="scene" class="scene">
+            <div class="background-orb orb-left" aria-hidden="true"></div>
+            <div class="background-orb orb-right" aria-hidden="true"></div>
+
+            <div class="speech-bubble" aria-live="polite">
+              <span id="bubble-text">I'm so thirsty!</span>
+            </div>
+
+            <div id="sparkle-layer" class="sparkle-layer" aria-hidden="true"></div>
+
+            <div class="scene-floor" aria-hidden="true"></div>
+
+            <div class="table" aria-label="Table with water and electrolytes">
+              <div class="table-items">
+                <button
+                  id="pitcher-btn"
+                  class="table-item pitcher water-control"
+                  type="button"
+                  aria-label="Pour water from the pitcher"
+                >
+                  <span class="pitcher-body">
+                    <span class="pitcher-water"></span>
+                  </span>
+                  <span class="item-label">Pitcher</span>
+                </button>
+
+                <button
+                  id="cup-btn"
+                  class="table-item cup water-control"
+                  type="button"
+                  aria-label="Give the character a cup of water"
+                >
+                  <span class="cup-body">
+                    <span class="cup-water"></span>
+                  </span>
+                  <span class="item-label">Cup</span>
+                </button>
+
+                <button class="table-item electrolyte-btn sodium" data-electrolyte="sodium" type="button">
+                  <span class="electrolyte-icon" aria-hidden="true">Na</span>
+                  <span class="item-label">Sodium</span>
+                </button>
+
+                <button class="table-item electrolyte-btn potassium" data-electrolyte="potassium" type="button">
+                  <span class="electrolyte-icon" aria-hidden="true">K</span>
+                  <span class="item-label">Potassium</span>
+                </button>
+
+                <button class="table-item electrolyte-btn magnesium" data-electrolyte="magnesium" type="button">
+                  <span class="electrolyte-icon" aria-hidden="true">Mg</span>
+                  <span class="item-label">Magnesium</span>
+                </button>
+
+                <button class="table-item electrolyte-btn calcium" data-electrolyte="calcium" type="button">
+                  <span class="electrolyte-icon" aria-hidden="true">Ca</span>
+                  <span class="item-label">Calcium</span>
+                </button>
+
+                <button
+                  id="shortcut-btn"
+                  class="table-item relyte-btn"
+                  type="button"
+                  aria-label="Use Re-Lyte to add all electrolytes at once"
+                >
+                  <span class="jar-cap" aria-hidden="true"></span>
+                  <span class="jar-body">
+                    <span class="jar-copy">Re-Lyte</span>
+                  </span>
+                  <span class="item-label">Shortcut</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="water-stream" aria-hidden="true">
+              <span class="stream-line"></span>
+              <span class="stream-drop drop-a"></span>
+              <span class="stream-drop drop-b"></span>
+              <span class="stream-drop drop-c"></span>
+            </div>
+
+            <div id="character" class="character" data-mood="sad">
+              <div class="character-glow" aria-hidden="true"></div>
+              <div class="head">
+                <div class="brows" aria-hidden="true">
+                  <span class="brow brow-left"></span>
+                  <span class="brow brow-right"></span>
+                </div>
+                <div class="eyes" aria-hidden="true">
+                  <span class="eye eye-left"></span>
+                  <span class="eye eye-right"></span>
+                </div>
+                <div class="mouth" aria-hidden="true"></div>
+                <div class="cheeks" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+
+              <div class="arm arm-left" aria-hidden="true"></div>
+              <div class="arm arm-right" aria-hidden="true"></div>
+
+              <div class="torso">
+                <div class="belly-window">
+                  <div id="belly-fill" class="belly-fill"></div>
+                </div>
+
+                <div class="shirt-shine" aria-hidden="true"></div>
+
+                <div class="leak-layer" aria-hidden="true">
+                  <span class="leak-drop leak-1"></span>
+                  <span class="leak-drop leak-2"></span>
+                  <span class="leak-drop leak-3"></span>
+                </div>
+              </div>
+
+              <div class="leg leg-left" aria-hidden="true"></div>
+              <div class="leg leg-right" aria-hidden="true"></div>
+            </div>
+
+            <div class="puddle-zone" aria-hidden="true">
+              <div id="puddle" class="puddle"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

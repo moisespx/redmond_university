@@ -18,6 +18,7 @@ Static project for training modules and mini-games embedded in Canvas.
 ├── games/
 │   ├── farm/
 │   ├── jeopardy/
+│   ├── re-lyte-rescue/
 │   └── smoothie/
 ├── menu/
 └── index.html
@@ -35,6 +36,7 @@ The login page lives at the root, and its shared files are stored in `assets/log
 - Games:
   - `games/farm/index.html`
   - `games/jeopardy/index.html`
+  - `games/re-lyte-rescue/index.html`
   - `games/smoothie/index.html`
 
 ## Language by URL

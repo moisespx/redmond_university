@@ -209,31 +209,31 @@
       (async function () {
         const DEFAULT_CARDS = [
           {
-            image: "https://canvas.instructure.com/courses/11992150/files/325594601/preview",
+            image: "../../assets/imgs/png/Stuard of the Land small.png",
             title: "The Steward of the Land",
             name: "Silas",
             text: "Re-Lyte keeps me hydrated as I work in the field, and I love Real Salt and seasonings on the eggs, meat, and vegetables I raise!",
           },
           {
-            image: "https://canvas.instructure.com/courses/11992150/files/321895982/preview",
+            image: "../../assets/imgs/png/Peak Performer.png",
             title: "Peak Performer",
             name: "Cedar",
             text: "Re-Lyte products help me perform at my best! I also love Redmond's natural seasonings and care products, so I know what I'm putting on or in my body.",
           },
           {
-            image: "https://canvas.instructure.com/courses/11992150/files/321895824/preview",
+            image: "../../assets/imgs/png/Optimized Living Enthusiast.png",
             title: "Optimized Living Enthusiast",
             name: "Maya",
             text: "I love Redmond Living products because I know they're made with nourishing, responsibly sourced ingredients that feel good on and in my body, helping me live my best life.",
           },
           {
-            image: "https://canvas.instructure.com/courses/11992150/files/325594429/preview",
+            image: "../../assets/imgs/png/Master of the Meal.png",
             title: "The Master of the Meal",
             name: "Chef Shawna",
             text: "Redmond's Real Salt and seasonings are unparalleled! I love these products, whether I'm preparing a quick meal for myself or an elaborate twelve-course meal for a dinner party.",
           },
           {
-            image: "https://canvas.instructure.com/courses/11992150/files/321896079/preview",
+            image: "../../assets/imgs/png/Concious Caretaker.png",
             title: "Conscious Caretaker",
             name: "Caleb",
             text: "My kids love Relyte, and so do I! Redmond products help us stay hydrated and healthy, allowing us to feel our best and spend quality time together.",
@@ -297,44 +297,11 @@
             .filter(Boolean);
         }
 
-        const CANVAS_BASE = "https://canvas.instructure.com";
-
-        function canvasPreviewToDownloadUrl(value) {
-          const raw = String(value || "").trim();
-          if (!raw) return "";
-          const normalized = raw
-            .replace(/^\/\/canvas\.instructure\.com/i, "https://canvas.instructure.com")
-            .replace(/^canvas\.instructure\.com\//i, "https://canvas.instructure.com/");
-          if (!/^https?:\/\/canvas\.instructure\.com\//i.test(normalized)) return raw;
-          try {
-            const url = new URL(normalized);
-            if (!/\/preview\/?$/.test(url.pathname)) return raw;
-            url.pathname = url.pathname.replace(/\/preview\/?$/, "/download");
-            if (!url.searchParams.has("download_frd")) {
-              url.searchParams.set("download_frd", "1");
-            }
-            return url.toString();
-          } catch {
-            return raw;
-          }
-        }
-
         function extractFirstUrlLikeValue(input) {
           const value = String(input || "").trim();
           if (!value) return "";
           const match = value.match(/https?:\/\/[^\s"'<>]+/i);
           if (match) return match[0];
-          return value;
-        }
-
-        function normalizeCanvasUrl(value) {
-          if (!value) return "";
-          if (value.startsWith("//canvas.instructure.com"))
-            return `https:${value}`;
-          if (value.startsWith("/courses/") || value.startsWith("/files/"))
-            return `${CANVAS_BASE}${value}`;
-          if (value.startsWith("canvas.instructure.com/"))
-            return `https://${value}`;
           return value;
         }
 
@@ -357,23 +324,8 @@
         }
 
         function getSafeImageCandidates(rawUrl) {
-          const base = normalizeCanvasUrl(extractFirstUrlLikeValue(rawUrl));
-          if (!base) return [];
-          const candidates = [base];
-          const downloadCandidate = canvasPreviewToDownloadUrl(base);
-          if (downloadCandidate && downloadCandidate !== base) {
-            candidates.push(downloadCandidate);
-          }
-          const safeCandidates = [];
-          const seen = new Set();
-          for (const candidate of candidates) {
-            const safeHref = toSafeImageHref(candidate);
-            if (safeHref && !seen.has(safeHref)) {
-              seen.add(safeHref);
-              safeCandidates.push(safeHref);
-            }
-          }
-          return safeCandidates;
+          const safeHref = toSafeImageHref(extractFirstUrlLikeValue(rawUrl));
+          return safeHref ? [safeHref] : [];
         }
 
         function base64UrlToString(raw) {
@@ -628,14 +580,6 @@
             if (imageCandidateIndex < imageCandidates.length) {
               img.src = imageCandidates[imageCandidateIndex];
               return;
-            }
-            const isCanvasImage =
-              typeof card?.image === "string" &&
-              /canvas\.instructure\.com/i.test(card.image);
-            if (isCanvasImage && hintEl && !hintEl.dataset.canvasImageWarning) {
-              hintEl.textContent =
-                "Algunas imágenes de Canvas no cargaron. Usa URLs públicas/directas o archivos locales.";
-              hintEl.dataset.canvasImageWarning = "1";
             }
             if (img.src !== new URL(fallbackSrc, window.location.href).href) {
               img.src = fallbackSrc;
