@@ -153,28 +153,28 @@
         "cards": [
           {
             "title": "Resource 1",
-            "image": "https://canvas.instructure.com/courses/12300081/files/336055601/preview",
-            "alt": "Lorem ipsum"
+            "image": "../../assets/imgs/carousell-farms/cow.jpg",
+            "alt": "Redmond Farms resource 1"
           },
           {
             "title": "Resource 2",
-            "image": "https://canvas.instructure.com/courses/12300081/files/336232311/preview",
-            "alt": "Lorem ipsum"
+            "image": "../../assets/imgs/carousell-farms/milk.png",
+            "alt": "Redmond Farms resource 2"
           },
           {
             "title": "Resource 3",
-            "image": "https://canvas.instructure.com/courses/12300081/files/336232365/preview",
-            "alt": "Lorem ipsum"
+            "image": "../../assets/imgs/carousell-farms/redknolls1%20(1).jpg",
+            "alt": "Redmond Farms resource 3"
           },
           {
             "title": "Resource 4",
-            "image": "	https://canvas.instructure.com/courses/12300081/files/336232369/preview",
-            "alt": "Lorem ipsum"
+            "image": "../../assets/imgs/carousell-farms/real-foods-market.png",
+            "alt": "Redmond Farms resource 4"
           },
           {
             "title": "Resource 5",
-            "image": "	https://canvas.instructure.com/courses/12300081/files/336232367/preview",
-            "alt": "Lorem ipsum"
+            "image": "../../assets/imgs/carousell-farms/paper.png",
+            "alt": "Redmond Farms resource 5"
           }
         ]
       }
@@ -196,28 +196,28 @@
           cards: [
             {
               title: "Resource 1",
-              image: "https://canvas.instructure.com/courses/12300081/files/336055601/preview",
-              alt: "Lorem ipsum",
+              image: "../../assets/imgs/carousell-farms/cow.jpg",
+              alt: "Redmond Farms resource 1",
             },
             {
               title: "Resource 2",
-              image: "https://canvas.instructure.com/courses/12300081/files/336232311/preview",
-              alt: "Lorem ipsum",
+              image: "../../assets/imgs/carousell-farms/milk.png",
+              alt: "Redmond Farms resource 2",
             },
             {
               title: "Resource 3",
-              image: "https://canvas.instructure.com/courses/12300081/files/336232365/preview",
-              alt: "Lorem ipsum",
+              image: "../../assets/imgs/carousell-farms/redknolls1%20(1).jpg",
+              alt: "Redmond Farms resource 3",
             },
             {
               title: "Resource 4",
-              image: "https://canvas.instructure.com/courses/12300081/files/336232369/preview",
-              alt: "Lorem ipsum",
+              image: "../../assets/imgs/carousell-farms/real-foods-market.png",
+              alt: "Redmond Farms resource 4",
             },
             {
               title: "Resource 5",
-              image: "https://canvas.instructure.com/courses/12300081/files/336232367/preview",
-              alt: "Lorem ipsum",
+              image: "../../assets/imgs/carousell-farms/paper.png",
+              alt: "Redmond Farms resource 5",
             },
           ],
         };
@@ -295,8 +295,6 @@
 
         const cards = Array.from(document.querySelectorAll(".resource-card"));
         let activeIndex = 0;
-        let autoplayTimer = null;
-        const AUTOPLAY_MS = 2200;
         let suppressClickUntil = 0;
         let pointerDown = false;
         let activePointerId = null;
@@ -362,20 +360,6 @@
           render();
         }
 
-        function startAutoplay() {
-          stopAutoplay();
-          autoplayTimer = setInterval(next, AUTOPLAY_MS);
-        }
-
-        function stopAutoplay() {
-          if (autoplayTimer) clearInterval(autoplayTimer);
-          autoplayTimer = null;
-        }
-
-        function restartAutoplay() {
-          startAutoplay();
-        }
-
         cards.forEach((card, index) => {
           card.addEventListener("click", () => {
             if (Date.now() < suppressClickUntil) return;
@@ -385,7 +369,6 @@
               activeIndex = index;
               render();
             }
-            restartAutoplay();
           });
         });
 
@@ -397,7 +380,6 @@
           dragOffsetX = 0;
           draggedInGesture = false;
           carouselWrap.classList.add("is-dragging");
-          stopAutoplay();
         }
 
         function updateDrag(clientX, pointerId) {
@@ -430,7 +412,6 @@
           dragOffsetX = 0;
           draggedInGesture = false;
           render();
-          restartAutoplay();
         }
 
         function cancelDrag() {
@@ -441,7 +422,6 @@
           draggedInGesture = false;
           carouselWrap.classList.remove("is-dragging");
           render();
-          restartAutoplay();
         }
 
         carouselWrap.addEventListener("dragstart", (event) => {
@@ -522,16 +502,13 @@
         window.addEventListener("keydown", (event) => {
           if (event.key === "ArrowRight") {
             next();
-            restartAutoplay();
           }
           if (event.key === "ArrowLeft") {
             prev();
-            restartAutoplay();
           }
         });
 
         render();
-        startAutoplay();
       })();
     </script>
   </body>
