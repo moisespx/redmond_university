@@ -12,6 +12,8 @@
         --text-main: #1a1719;
         --text-muted: #5a5c59;
         --shadow-hover: 0 20px 28px rgba(43, 39, 32, 0.14);
+        --embedded-scene-height: 1200px;
+        --embedded-scene-width: 1689px;
       }
 
       * {
@@ -60,6 +62,25 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
+      }
+
+      html.is-embedded .page {
+        width: 100%;
+      }
+
+      html.is-embedded .scene-scroll {
+        display: flex;
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      html.is-embedded .scene {
+        width: var(--embedded-scene-width);
+        min-width: var(--embedded-scene-width);
+        height: var(--embedded-scene-height);
+        aspect-ratio: auto;
+        margin: 0;
+        flex: none;
       }
 
       .brand {
@@ -242,9 +263,22 @@
     </main>
 
     <script>
+      const isEmbedded = window.self !== window.top;
+      if (isEmbedded) {
+        document.documentElement.classList.add("is-embedded");
+      }
+
       const scene = document.getElementById("scene");
+      const sceneScroll = document.querySelector(".scene-scroll");
       const productionKitchenCopy =
         "Responsible for making our brioche buns, coconut oil chips, salad dressings, and so much more!";
+
+      const centerEmbeddedScene = () => {
+        if (!isEmbedded || !sceneScroll) return;
+        const maxScroll = sceneScroll.scrollWidth - sceneScroll.clientWidth;
+
+        sceneScroll.scrollLeft = maxScroll > 0 ? maxScroll / 2 : 0;
+      };
 
       const hotspots = [
         {
@@ -420,6 +454,10 @@
           clearActiveBrands();
         }
       });
+
+      centerEmbeddedScene();
+      window.addEventListener("load", centerEmbeddedScene);
+      window.addEventListener("resize", centerEmbeddedScene);
     </script>
   </body>
 </html>
