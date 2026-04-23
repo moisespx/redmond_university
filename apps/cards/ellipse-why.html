@@ -32,10 +32,10 @@
       }
 
       .stage {
-        width: min(600px, 100%);
+        width: min(70%, 960px);
         display: flex;
         flex-direction: column;
-        gap: 22px;
+        gap: 32px;
       }
 
       .flip-card {
@@ -55,7 +55,7 @@
         display: block;
         position: relative;
         width: 100%;
-        aspect-ratio: 16 / 7;
+        min-height: 220px;
         border-radius: 24px;
         transform-style: preserve-3d;
         transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
@@ -151,8 +151,9 @@
         font-family: "Avenir", "Avenir Next", "Helvetica Neue", sans-serif;
         font-size: 16px;
         line-height: 1.4;
-        overflow: auto;
-        padding-right: 6px;
+        width: 100%;
+        overflow: visible;
+        text-wrap: pretty;
       }
 
       .flip-card:focus-visible {
@@ -163,11 +164,12 @@
 
       @media (max-width: 760px) {
         .stage {
-          gap: 16px;
+          width: 100%;
+          gap: 32px;
         }
 
         .flip-inner {
-          aspect-ratio: 4 / 3;
+          min-height: 240px;
           border-radius: 20px;
         }
 
@@ -206,7 +208,6 @@
         <div class="flip-inner">
           <div class="card-face card-front">
             <span class="front-word">Why</span>
-            <span class="front-hint">Click to flip</span>
           </div>
           <div class="card-face card-back">
             <h2 class="back-title">Why</h2>
@@ -227,7 +228,6 @@
         <div class="flip-inner">
           <div class="card-face card-front">
             <span class="front-word">Who</span>
-            <span class="front-hint">Click to flip</span>
           </div>
           <div class="card-face card-back">
             <h2 class="back-title">Who</h2>
@@ -253,7 +253,6 @@
         <div class="flip-inner">
           <div class="card-face card-front">
             <span class="front-word">What</span>
-            <span class="front-hint">Click to flip</span>
           </div>
           <div class="card-face card-back">
             <h2 class="back-title">What</h2>
@@ -269,6 +268,55 @@
     <script>
       (function () {
         const cards = Array.from(document.querySelectorAll(".flip-card"));
+        const compactViewport = window.matchMedia("(max-width: 760px)");
+
+        const syncCardHeights = () => {
+          let tallestHeight = 0;
+          const minimumHeight = compactViewport.matches ? 240 : 220;
+
+          cards.forEach((card) => {
+            const inner = card.querySelector(".flip-inner");
+
+            if (inner) inner.style.height = "";
+          });
+
+          cards.forEach((card) => {
+            const inner = card.querySelector(".flip-inner");
+            const back = card.querySelector(".card-back");
+            const title = card.querySelector(".back-title");
+            const text = card.querySelector(".back-text");
+
+            if (!inner || !back || !title || !text) return;
+
+            const backStyles = window.getComputedStyle(back);
+            const paddingTop = parseFloat(backStyles.paddingTop) || 0;
+            const paddingBottom = parseFloat(backStyles.paddingBottom) || 0;
+            const gap = parseFloat(backStyles.gap) || 0;
+            const contentHeight =
+              paddingTop +
+              paddingBottom +
+              gap +
+              title.getBoundingClientRect().height +
+              text.scrollHeight +
+              8;
+
+            tallestHeight = Math.max(tallestHeight, minimumHeight, contentHeight);
+          });
+
+          const sharedHeight = Math.ceil(tallestHeight);
+
+          cards.forEach((card) => {
+            const inner = card.querySelector(".flip-inner");
+
+            if (inner) inner.style.height = `${sharedHeight}px`;
+          });
+        };
+
+        let resizeFrame = 0;
+        const scheduleHeightSync = () => {
+          window.cancelAnimationFrame(resizeFrame);
+          resizeFrame = window.requestAnimationFrame(syncCardHeights);
+        };
 
         const closeAll = () => {
           cards.forEach((card) => {
@@ -287,6 +335,15 @@
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape") closeAll();
         });
+
+        scheduleHeightSync();
+        window.addEventListener("load", scheduleHeightSync);
+        window.addEventListener("resize", scheduleHeightSync);
+        compactViewport.addEventListener("change", scheduleHeightSync);
+
+        if (document.fonts?.ready) {
+          document.fonts.ready.then(scheduleHeightSync);
+        }
       })();
     </script>
   </body>
